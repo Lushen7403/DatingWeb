@@ -1,48 +1,38 @@
-
 import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import ProfileCard from '@/components/ProfileCard';
 import { toast } from 'sonner';
-
-// Sample data
-const dummyProfiles = [
-  {
-    id: '1',
-    name: 'Thảo',
-    age: 23,
-    distance: 4,
-    avatar: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80',
-  },
-  {
-    id: '2',
-    name: 'Minh',
-    age: 25,
-    distance: 2,
-    avatar: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=764&q=80',
-  },
-  {
-    id: '3',
-    name: 'Hà',
-    age: 24,
-    distance: 7,
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=687&q=80',
-  },
-  {
-    id: '4',
-    name: 'Khoa',
-    age: 26,
-    distance: 3,
-    avatar: 'https://images.unsplash.com/photo-1500048993953-d23a436266cf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1469&q=80',
-  }
-];
+import { getProfilesToMatch, Profile } from '@/lib/profileApi';
 
 const Index = () => {
-  const [profiles, setProfiles] = useState(dummyProfiles);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      try {
+        const accountId = localStorage.getItem('accountId');
+        if (!accountId) {
+          toast.error('Vui lòng đăng nhập để sử dụng tính năng này');
+          return;
+        }
+        const data = await getProfilesToMatch(Number(accountId));
+        setProfiles(data);
+      } catch (error) {
+        toast.error('Không thể tải danh sách hồ sơ');
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfiles();
+  }, []);
 
   const handleAction = (action: 'like' | 'dislike') => {
     if (action === 'like') {
-      toast.success(`Bạn đã thích ${profiles[currentProfileIndex].name}!`);
+      toast.success(`Bạn đã thích ${profiles[currentProfileIndex].fullName}!`);
     }
     
     // Move to next profile after a short delay
@@ -59,6 +49,19 @@ const Index = () => {
     }, 500);
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="pt-20 flex items-center justify-center h-[80vh]">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Đang tải...</h2>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (profiles.length === 0) {
     return (
       <div className="min-h-screen bg-background">
@@ -73,6 +76,9 @@ const Index = () => {
     );
   }
 
+  const currentProfile = profiles[currentProfileIndex];
+  const age = new Date().getFullYear() - new Date(currentProfile.birthday).getFullYear();
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -84,10 +90,10 @@ const Index = () => {
               className={index === currentProfileIndex ? 'block' : 'hidden'}
             >
               <ProfileCard
-                id={profile.id}
-                name={profile.name}
-                age={profile.age}
-                distance={profile.distance}
+                id={profile.id.toString()}
+                name={profile.fullName}
+                age={age}
+                distance={0} // TODO: Calculate distance when location is implemented
                 avatar={profile.avatar}
                 onAction={handleAction}
               />

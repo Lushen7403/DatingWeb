@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5291/api/Profile";
+const API_URL_LOCAL = "http://localhost:5291/api/Profile";
 
 // Kiểm tra profile tồn tại
 export const checkProfile = async (accountId: number): Promise<boolean> => {
@@ -10,7 +10,7 @@ export const checkProfile = async (accountId: number): Promise<boolean> => {
       throw new Error('No token found');
     }
 
-    const response = await axios.get(`${API_URL}/GetProfile/${accountId}`, {
+    const response = await axios.get(`${API_URL_LOCAL}/GetProfile/${accountId}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -32,7 +32,7 @@ export const createProfile = async (formData: FormData) => {
       throw new Error('No token found');
     }
 
-    const response = await axios.post(`${API_URL}/CreateProfile`, formData, {
+    const response = await axios.post(`${API_URL_LOCAL}/CreateProfile`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         'Authorization': `Bearer ${token}`
@@ -52,7 +52,7 @@ export const updateProfile = async (accountId: number, formData: FormData) => {
       throw new Error('No token found');
     }
 
-    const response = await axios.put(`${API_URL}/UpdateProfile/${accountId}`, formData, {
+    const response = await axios.put(`${API_URL_LOCAL}/UpdateProfile/${accountId}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         'Authorization': `Bearer ${token}`
@@ -78,7 +78,7 @@ export const getProfile = async (accountId: number) => {
       throw new Error('No token found');
     }
 
-    const response = await axios.get(`${API_URL}/GetProfile/${accountId}`, {
+    const response = await axios.get(`${API_URL_LOCAL}/GetProfile/${accountId}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -87,4 +87,36 @@ export const getProfile = async (accountId: number) => {
   } catch (error: any) {
     throw error;
   }
-}; 
+};
+
+export interface Profile {
+  id: number;
+  accountId: number;
+  fullName: string;
+  birthday: string;
+  genderId: number;
+  description: string;
+  avatar: string;
+  publicId: string;
+  createdAt: string;
+  updatedAt: string;
+  account: any;
+  gender: any;
+  profileImages: any[];
+}
+
+export async function getProfilesToMatch(accountId: number): Promise<Profile[]> {
+  try {
+    const response = await fetch(`${API_URL_LOCAL}/GetProfilesToMatch/${accountId}`);
+    if (!response.ok) {
+      if (response.status === 404) {
+        return [];
+      }
+      throw new Error('Failed to fetch profiles');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching profiles:', error);
+    throw error;
+  }
+} 

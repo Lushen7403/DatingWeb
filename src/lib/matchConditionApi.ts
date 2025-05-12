@@ -2,7 +2,7 @@ const MATCH_CONDITION_API_URL = "http://localhost:5291/api/MatchCondition";
 
 // Lấy tiêu chí ghép đôi theo accountId
 export async function getMatchCondition(accountId: number) {
-  const res = await fetch(`${MATCH_CONDITION_API_URL}/account/${accountId}`);
+  const res = await fetch(`${MATCH_CONDITION_API_URL}/${accountId}`);
   if (!res.ok) return null;
   return await res.json();
 }

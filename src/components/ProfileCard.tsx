@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Heart, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -44,12 +43,12 @@ const ProfileCard = ({ id, name, age, distance, avatar, onAction }: ProfileCardP
         onClick={handleCardClick}
       >
         <img 
-          src={avatar} 
+          src={avatar ? `https://res.cloudinary.com/dfvhhpkyg/image/upload/${avatar}` : '/default-avatar.png'} 
           alt={name} 
           className="w-full h-full object-cover"
           onError={(e) => {
             // Fallback if image fails to load
-            (e.target as HTMLImageElement).src = 'https://via.placeholder.com/300x500?text=MatchUp';
+            (e.target as HTMLImageElement).src = '/default-avatar.png';
           }}
         />
         

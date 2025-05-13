@@ -3,9 +3,13 @@ import { Heart, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { swipeProfile, getTodaySwipeCount } from '@/lib/matchApi';
+import SwipeConfirmDialog from '@/components/SwipeConfirmDialog';
 
 interface ProfileCardProps {
   id: string;
+  accountId: string;
   name: string;
   age: number;
   distance: number;
@@ -13,21 +17,104 @@ interface ProfileCardProps {
   onAction?: (action: 'like' | 'dislike') => void;
 }
 
-const ProfileCard = ({ id, name, age, distance, avatar, onAction }: ProfileCardProps) => {
+const ProfileCard = ({ id, accountId, name, age, distance, avatar, onAction }: ProfileCardProps) => {
   const [action, setAction] = useState<'like' | 'dislike' | null>(null);
+  const [showSwipeDialog, setShowSwipeDialog] = useState(false);
+  const [remainingSwipes, setRemainingSwipes] = useState(10);
+  const [willUseDiamonds, setWillUseDiamonds] = useState(false);
   const navigate = useNavigate();
   
-  const handleAction = (actionType: 'like' | 'dislike') => {
-    setAction(actionType);
-    
-    // Wait for animation to finish before calling the callback
-    setTimeout(() => {
-      if (onAction) onAction(actionType);
-    }, 500);
+  const checkSwipeCount = async () => {
+    try {
+      const accountId = localStorage.getItem('accountId');
+      if (!accountId) {
+        navigate('/login');
+        return;
+      }
+
+      const count = await getTodaySwipeCount(parseInt(accountId));
+      const remaining = 10 - count;
+      setRemainingSwipes(remaining);
+      setWillUseDiamonds(remaining <= 0);
+      setShowSwipeDialog(true);
+    } catch (error) {
+      toast.error('Không thể kiểm tra lượt thích');
+    }
+  };
+
+  const handleAction = async (actionType: 'like' | 'dislike') => {
+    if (actionType === 'like') {
+      await checkSwipeCount();
+    } else {
+      await handleDislike();
+    }
+  };
+
+  const handleSwipeConfirm = async () => {
+    try {
+      const accountId = localStorage.getItem('accountId');
+      if (!accountId) {
+        navigate('/login');
+        return;
+      }
+
+      const result = await swipeProfile(
+        parseInt(accountId),
+        parseInt(id),
+        true
+      );
+
+      setAction('like');
+      
+      // Wait for animation to finish before calling the callback
+      setTimeout(() => {
+        if (onAction) onAction('like');
+        
+        // If result has conversation property, it means it's a match
+        if (result.isMatch && result.conversation) {
+          toast.success(`Thành công! Bạn đã match với ${name}!`);
+          navigate('/messages');
+        } else {
+          toast.info(`Bạn đã thích ${name}`);
+        }
+      }, 500);
+    } catch (error: any) {
+      if (error.response?.status === 400) {
+        toast.error(error.response.data);
+      } else {
+        toast.error('Có lỗi xảy ra khi thích profile');
+      }
+    }
+  };
+  
+  const handleDislike = async () => {
+    try {
+      const accountId = localStorage.getItem('accountId');
+      if (!accountId) {
+        navigate('/login');
+        return;
+      }
+
+      const result = await swipeProfile(
+        parseInt(accountId),
+        parseInt(id),
+        false
+      );
+
+      setAction('dislike');
+      
+      // Wait for animation to finish before calling the callback
+      setTimeout(() => {
+        if (onAction) onAction('dislike');
+        toast.info(`Bạn đã bỏ qua ${name}`);
+      }, 500);
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi bỏ qua profile');
+    }
   };
   
   const handleCardClick = () => {
-    navigate(`/view-profile/${id}`);
+    navigate(`/view-profile/${accountId}`);
   };
 
   return (
@@ -92,6 +179,14 @@ const ProfileCard = ({ id, name, age, distance, avatar, onAction }: ProfileCardP
           <Heart size={24} />
         </Button>
       </div>
+
+      <SwipeConfirmDialog
+        isOpen={showSwipeDialog}
+        onClose={() => setShowSwipeDialog(false)}
+        onConfirm={handleSwipeConfirm}
+        remainingSwipes={remainingSwipes}
+        willUseDiamonds={willUseDiamonds}
+      />
     </div>
   );
 };

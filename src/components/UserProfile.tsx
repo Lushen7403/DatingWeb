@@ -9,6 +9,7 @@ interface UserProfileProps {
 }
 
 const UserProfile = ({ user, editable = false }: UserProfileProps) => {
+
   const getZodiacSign = (birthdate: string) => {
     // Simple zodiac calculation - would need a more sophisticated implementation in production
     const date = new Date(birthdate);
@@ -70,16 +71,18 @@ const UserProfile = ({ user, editable = false }: UserProfileProps) => {
 
       <div className="container px-4 pt-4">
         <div className="flex flex-col items-center">
-          {/* Ảnh đại diện lớn */}
-          {mainPhoto && (
+          {/* Ảnh đại diện */}
             <div className="w-32 h-32 rounded-full overflow-hidden mb-4">
               <img 
-                src={mainPhoto} 
+              src={user.avatar || '/default-avatar.png'} 
                 alt={user.name} 
                 className="w-full h-full object-cover"
+              onError={(e) => {
+                console.log('Avatar load error:', e); // Debug
+                (e.target as HTMLImageElement).src = '/default-avatar.png';
+              }}
               />
             </div>
-          )}
 
           <h1 className="text-2xl font-bold">{user.name}</h1>
           <div className="flex items-center text-sm text-muted-foreground mt-1">
@@ -95,17 +98,24 @@ const UserProfile = ({ user, editable = false }: UserProfileProps) => {
           </p>
 
           {/* Ảnh phụ */}
-          {subPhotos.length > 0 && (
-            <div className={`mt-8 w-full ${subPhotos.length <= 3 ? 'grid grid-cols-3 gap-2' : 'grid grid-cols-3 gap-2'}`}>
-              {subPhotos.map((photo, idx) => (
+          {user.photos && user.photos.length > 0 && (
+            <div className="mt-8 w-full">
+              <h2 className="text-lg font-semibold mb-4">Ảnh của tôi</h2>
+              <div className="grid grid-cols-3 gap-2">
+                {user.photos.map((photo, idx) => (
                 <div key={idx} className="aspect-square rounded-lg overflow-hidden">
                   <img 
                     src={photo} 
-                    alt={`${user.name} photo ${idx + 2}`} 
+                      alt={`${user.name} photo ${idx + 1}`} 
                     className="w-full h-full object-cover"
+                      onError={(e) => {
+                        console.log('Photo load error:', e); // Debug
+                        (e.target as HTMLImageElement).src = '/default-avatar.png';
+                      }}
                   />
                 </div>
               ))}
+              </div>
             </div>
           )}
         </div>

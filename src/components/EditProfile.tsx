@@ -108,7 +108,9 @@ const EditProfile = ({ user, onSave }: EditProfileProps) => {
             className="cursor-pointer group"
             onClick={() => handleEditField('name')}
           >
-            <h1 className="text-2xl font-bold group-hover:text-matchup-purple transition-colors">{editedUser.name}</h1>
+            <h1 className="text-2xl font-bold group-hover:text-matchup-purple transition-colors">
+              {editedUser.name || 'Thêm tên của bạn'}
+            </h1>
             <div className="h-0.5 w-0 group-hover:w-full bg-matchup-purple transition-all duration-300"></div>
           </div>
 

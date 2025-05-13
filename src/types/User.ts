@@ -1,10 +1,10 @@
-
 export interface User {
-  id?: string;
+  id: string;
+  accountId: number;
   name: string;
-  avatar?: string;
   birthdate: string;
   gender: string;
   bio: string;
-  photos?: string[];
+  avatar: string;
+  photos: string[];
 }

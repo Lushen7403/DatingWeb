@@ -13,23 +13,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from 'sonner';
 import { getProfile } from '@/lib/profileApi';
-
-const CLOUDINARY_BASE_URL = 'https://res.cloudinary.com/dfvhhpkyg/image/upload';
+import { swipeProfile } from '@/lib/matchApi';
 
 const ViewProfile = () => {
   const { profileId } = useParams<{ profileId: string }>();
   const [profile, setProfile] = useState<User | null>(null);
   const navigate = useNavigate();
 
-  const formatImageUrl = (path: string) => {
-    if (!path) return '';
-    // If path is already a full URL, return it
-    if (path.startsWith('http')) return path;
-    // If path starts with /, remove it
-    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-    // Construct the full Cloudinary URL
-    return `${CLOUDINARY_BASE_URL}/${cleanPath}`;
-  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -43,13 +33,14 @@ const ViewProfile = () => {
         
         // Convert API data to User format
         const userData: User = {
-          id: profileId,
+          id: profileData.id,
+          accountId: profileData.accountId,
           name: profileData.fullName,
           birthdate: profileData.birthday,
           gender: profileData.genderId === 1 ? 'Nam' : profileData.genderId === 2 ? 'Nữ' : 'Khác',
           bio: profileData.description || '',
-          avatar: formatImageUrl(profileData.avatarUrl),
-          photos: (profileData.imageUrls || []).map(url => formatImageUrl(url))
+          avatar: profileData.avatarUrl,
+          photos: (profileData.imageUrls || [])
         };
 
         setProfile(userData);
@@ -62,14 +53,45 @@ const ViewProfile = () => {
     fetchProfile();
   }, [profileId, navigate]);
 
-  const handleMatch = () => {
-    toast.success(`Thành công! Bạn đã match với ${profile?.name}!`);
-    navigate('/messages');
+  const handleMatch = async () => {
+    if (!profile) return;
+    try {
+      const accountId = localStorage.getItem('accountId');
+      if (!accountId) {
+        toast.error('Vui lòng đăng nhập');
+        navigate('/login');
+        return;
+      }
+      
+      const result = await swipeProfile(Number(accountId), Number(profile.id), true);
+      
+      if (result.isMatch && result.conversation) {
+        toast.success(`Thành công! Bạn đã match với ${profile.name}!`);
+        navigate('/messages');
+      } else {
+        toast.info(`Bạn đã thích ${profile.name}`);
+        navigate('/');
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Có lỗi xảy ra khi thích');
+    }
   };
 
-  const handleDislike = () => {
-    toast.info(`Bạn đã bỏ qua ${profile?.name}`);
-    navigate('/');
+  const handleDislike = async () => {
+    if (!profile) return;
+    try {
+      const accountId = localStorage.getItem('accountId');
+      if (!accountId) {
+        toast.error('Vui lòng đăng nhập');
+        navigate('/login');
+        return;
+      }
+      await swipeProfile(Number(accountId), Number(profile.id), false);
+      toast.info(`Bạn đã bỏ qua ${profile.name}`);
+      navigate('/');
+    } catch (error: any) {
+      toast.error(error.message || 'Có lỗi xảy ra khi bỏ qua');
+    }
   };
 
   const handleBlock = () => {

@@ -1,7 +1,10 @@
-
 export interface Message {
-  id?: string;
+  id: string;
   text: string;
   timestamp: string;
   isMe: boolean;
+  media?: Array<{
+    url: string;
+    type: string;
+  }>;
 }

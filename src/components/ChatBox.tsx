@@ -1,36 +1,134 @@
-
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Send, Image, Video } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Message } from '@/types/Message';
+import { chatService, getMessages, uploadMedia } from '@/lib/chatService';
 
 interface ChatBoxProps {
-  matchId: string;
+  conversationId: number;
   matchName: string;
   matchAvatar: string;
+  matchId: number;
   isOnline?: boolean;
-  messages: Message[];
-  onSendMessage: (text: string) => void;
 }
 
 const ChatBox = ({ 
-  matchId, 
+  conversationId, 
   matchName, 
-  matchAvatar, 
-  isOnline = false, 
-  messages = [],
-  onSendMessage
+  matchAvatar,
+  matchId,
+  isOnline = false
 }: ChatBoxProps) => {
   const [text, setText] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isUserOnline, setIsUserOnline] = useState(isOnline);
+  const pageSize = 50;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = () => {
+  const fetchMessages = async (pageToLoad = 1) => {
+    if (!conversationId) return;
+    const msgs = await getMessages(conversationId, pageToLoad, pageSize);
+    const mapped = msgs
+      .filter(Boolean)
+      .map((msg: any) => ({
+        id: msg.id.toString(),
+        text: msg.messageText,
+        timestamp: msg.sentAt,
+        isMe: msg.senderId === Number(localStorage.getItem('accountId')),
+        media: msg.media || []
+      }));
+    
+    if (pageToLoad === 1) {
+      setMessages(mapped);
+    } else {
+      setMessages(prev => [...prev, ...mapped]);
+    }
+    setHasMore(msgs.length === pageSize);
+  };
+
+  useEffect(() => {
+    const initializeChat = async () => {
+      try {
+        setPage(1);
+        await fetchMessages(1);
+        console.log('Joining conversation:', conversationId);
+        await chatService.joinConversation(conversationId);
+        console.log('Checking online status for user:', matchId);
+        await chatService.checkOnline(matchId);
+      } catch (error) {
+        console.error('Error initializing chat:', error);
+      }
+    };
+
+    initializeChat();
+
+    const unsubscribeMessage = chatService.onMessage((message) => {
+      console.log('Received message:', message);
+      if (message.conversationId === conversationId) {
+        setMessages(prev => [...prev, {
+          id: message.id.toString(),
+          text: message.messageText,
+          timestamp: message.sentAt,
+          isMe: message.senderId === Number(localStorage.getItem('accountId')),
+          media: message.media || []
+        }]);
+      }
+    });
+
+    const unsubscribeOnline = chatService.onOnlineStatus((userId, isOnline) => {
+      console.log('Online status changed:', userId, isOnline);
+      if (userId === matchId) {
+        setIsUserOnline(isOnline);
+      }
+    });
+
+    return () => {
+      try {
+        chatService.leaveConversation(conversationId);
+      } catch (error) {
+        console.error('Error leaving conversation:', error);
+      }
+      unsubscribeMessage();
+      unsubscribeOnline();
+    };
+  }, [conversationId, matchId]);
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
+  const loadMore = () => {
+    if (hasMore) {
+      const nextPage = page + 1;
+      fetchMessages(nextPage);
+      setPage(nextPage);
+    }
+  };
+
+  const handleSend = async () => {
     if (text.trim()) {
-      onSendMessage(text.trim());
-      setText('');
+      try {
+        const accountId = Number(localStorage.getItem('accountId'));
+        console.log('Sending message:', { conversationId, accountId, text: text.trim() });
+        await chatService.sendMessage(
+          conversationId,
+          accountId,
+          text.trim(),
+          [],
+          []
+        );
+        setText('');
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
     }
   };
 
@@ -52,16 +150,27 @@ const ChatBox = ({
     }
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files && files.length > 0) {
-      // Here you would normally upload the file to a server
-      // For now, just send a message indicating a file was sent
-      const fileType = event.target.accept.includes('image') ? 'ảnh' : 'video';
-      onSendMessage(`Đã gửi ${fileType}: ${files[0].name}`);
-      
-      // Reset the input
-      event.target.value = '';
+      try {
+        const file = files[0];
+        const url = await uploadMedia(file);
+        const accountId = Number(localStorage.getItem('accountId'));
+        const fileType = event.target.accept.includes('image') ? 'image' : 'video';
+        
+        await chatService.sendMessage(
+          conversationId,
+          accountId,
+          '',
+          [url],
+          [fileType]
+        );
+        
+        event.target.value = '';
+      } catch (error) {
+        console.error('Error uploading file:', error);
+      }
     }
   };
 
@@ -85,7 +194,7 @@ const ChatBox = ({
             </div>
             <div className="flex flex-col">
               <span className="font-medium text-sm">{matchName}</span>
-              {isOnline && (
+              {isUserOnline && (
                 <span className="text-xs text-green-500">Đang hoạt động</span>
               )}
             </div>
@@ -95,7 +204,14 @@ const ChatBox = ({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col justify-end">
+        {hasMore && (
+          <div className="text-center mb-2">
+            <Button size="sm" variant="outline" onClick={loadMore}>
+              Xem tin nhắn cũ hơn
+            </Button>
+          </div>
+        )}
         {messages.map((message, index) => (
           <div 
             key={index} 
@@ -108,13 +224,27 @@ const ChatBox = ({
                   : 'bg-muted rounded-bl-none'
               }`}
             >
-              <p>{message.text}</p>
+              {message.media && message.media.length > 0 ? (
+                message.media.map((media, idx) => (
+                  <div key={idx} className="mb-2">
+                    {media.type === 'image' ? (
+                      <img src={media.url} alt="Media" className="max-w-full rounded-lg" />
+                    ) : (
+                      <video src={media.url} controls className="max-w-full rounded-lg" />
+                    )}
+                  </div>
+                ))
+              ) : null}
+              {message.text && <p>{message.text}</p>}
               <span className="text-xs opacity-70 block text-right mt-1">
-                {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {message.timestamp && !isNaN(new Date(message.timestamp).getTime())
+                  ? new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                  : ''}
               </span>
             </div>
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="p-4 border-t">

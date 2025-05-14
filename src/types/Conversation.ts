@@ -1,7 +1,7 @@
 
 import { Message } from './Message';
 
-export interface Match {
+export interface Conversation {
   id: string;
   name: string;
   avatar?: string;

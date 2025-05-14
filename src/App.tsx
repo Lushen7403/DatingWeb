@@ -38,7 +38,7 @@ const App = () => (
           <Route path="/profile" element={<AuthenticatedRoute><Profile /></AuthenticatedRoute>} />
           <Route path="/edit-profile" element={<AuthenticatedRoute><EditProfile /></AuthenticatedRoute>} />
           <Route path="/messages" element={<AuthenticatedRoute><Messages /></AuthenticatedRoute>} />
-          <Route path="/messages/:matchId" element={<AuthenticatedRoute><Messages /></AuthenticatedRoute>} />
+          <Route path="/messages/:id" element={<AuthenticatedRoute><Messages /></AuthenticatedRoute>} />
           <Route path="/settings" element={<AuthenticatedRoute><Settings /></AuthenticatedRoute>} />
           <Route path="/change-password" element={<AuthenticatedRoute><ChangePassword /></AuthenticatedRoute>} />
           <Route path="/diamond-recharge" element={<AuthenticatedRoute><DiamondRecharge /></AuthenticatedRoute>} />

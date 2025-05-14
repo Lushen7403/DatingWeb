@@ -77,7 +77,7 @@ export const getProfile = async (accountId: number) => {
     if (!token) {
       throw new Error('No token found');
     }
-
+    console.log(accountId);
     const response = await axios.get(`${API_URL_LOCAL}/GetProfile/${accountId}`, {
       headers: {
         'Authorization': `Bearer ${token}`

@@ -151,31 +151,29 @@ const ChatBox = ({
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-      try {
-        const file = files[0];
-        const url = await uploadMedia(file);
-        const accountId = Number(localStorage.getItem('accountId'));
-        const fileType = event.target.accept.includes('image') ? 'image' : 'video';
-        
-        await chatService.sendMessage(
-          conversationId,
-          accountId,
-          '',
-          [url],
-          [fileType]
-        );
-        
-        event.target.value = '';
-      } catch (error) {
-        console.error('Error uploading file:', error);
-      }
+  const files = event.target.files;
+  if (files && files.length > 0) {
+    try {
+      const file = files[0];
+      const accountId = Number(localStorage.getItem('accountId'));
+      const messageId = await chatService.sendMessage(
+        conversationId,
+        accountId,
+        '',
+        [],
+        []
+      );
+      const mediaUrl = await uploadMedia(file, messageId);
+      console.log('File uploaded, URL:', mediaUrl);
+      event.target.value = '';
+    } catch (error) {
+      console.error('Error uploading file:', error);
     }
-  };
+  }
+};
 
   return (
-    <div className="flex flex-col h-screen pt-16">
+    <div className="flex flex-col h-screen pt-16 overflow-hidden">
       <div className="matchup-header">
         <div className="flex items-center justify-between w-full">
           <Button variant="ghost" size="icon" asChild>

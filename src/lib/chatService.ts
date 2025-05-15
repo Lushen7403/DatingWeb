@@ -93,31 +93,33 @@ export class ChatService {
   }
 
   public async sendMessage(
-    conversationId: number,
-    senderId: number,
-    messageText: string,
-    mediaUrls: string[] = [],
-    mediaTypes: string[] = []
-  ) {
-    try {
-      console.log('Sending message:', { conversationId, senderId, messageText, mediaUrls, mediaTypes });
-      if (!this.connection || this.connection.state !== signalR.HubConnectionState.Connected) {
-        console.error('SignalR not connected');
-        return;
-      }
-      await this.connection.invoke('SendMessage', 
-        conversationId,
-        senderId,
-        messageText,
-        mediaUrls,
-        mediaTypes
-      );
-      console.log('Message sent successfully');
-    } catch (err) {
-      console.error('Error sending message:', err);
-      throw err;
+  conversationId: number,
+  senderId: number,
+  messageText: string,
+  mediaUrls: string[] = [],
+  mediaTypes: string[] = []
+): Promise<number> {
+  try {
+    console.log('Sending message:', { conversationId, senderId, messageText, mediaUrls, mediaTypes });
+    if (!this.connection || this.connection.state !== signalR.HubConnectionState.Connected) {
+      console.error('SignalR not connected');
+      throw new Error('SignalR not connected');
     }
+    // Giả sử hub được sửa để trả về messageId
+    const messageId = await this.connection.invoke<number>('SendMessage', 
+      conversationId,
+      senderId,
+      messageText,
+      mediaUrls,
+      mediaTypes
+    );
+    console.log('Message sent successfully, id:', messageId);
+    return messageId;
+  } catch (err) {
+    console.error('Error sending message:', err);
+    throw err;
   }
+}
 
   public async checkOnline(userId: number) {
     try {
@@ -157,12 +159,12 @@ export const getMessages = async (conversationId: number, page: number = 1, page
   }
 };
 
-export const uploadMedia = async (file: File) => {
+export const uploadMedia = async (file: File, messageId: number) => {
   try {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch(`${API_URL}/upload`, {
+    const response = await fetch(`${API_URL}/Upload?messageId=${messageId}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -172,9 +174,9 @@ export const uploadMedia = async (file: File) => {
 
     if (!response.ok) throw new Error('Failed to upload file');
     const result = await response.json();
-    return result.Url;
+  return result.mediaUrl as string;
   } catch (error) {
     console.error('Error uploading file:', error);
     throw error;
   }
-}; 
+};

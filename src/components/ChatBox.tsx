@@ -26,10 +26,16 @@ const ChatBox = ({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isUserOnline, setIsUserOnline] = useState(isOnline);
+  const [isLoadingMoreState, setIsLoadingMoreState] = useState(false);
   const pageSize = 50;
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const prevScrollHeight = useRef(0);
+  const isLoadingMore = useRef(false);
+  const shouldScrollToBottom = useRef(true);
 
   const fetchMessages = async (pageToLoad = 1) => {
     if (!conversationId) return;
@@ -41,13 +47,16 @@ const ChatBox = ({
         text: msg.messageText,
         timestamp: msg.sentAt,
         isMe: msg.senderId === Number(localStorage.getItem('accountId')),
-        media: msg.media || []
+        media: (msg.media || []).map((m: any) => ({
+          url: m.mediaUrl,
+          type: m.mediaType
+        }))
       }));
-    
+    const ordered = mapped.reverse();
     if (pageToLoad === 1) {
-      setMessages(mapped);
+      setMessages(ordered);
     } else {
-      setMessages(prev => [...prev, ...mapped]);
+      setMessages(prev => [...ordered, ...prev]);
     }
     setHasMore(msgs.length === pageSize);
   };
@@ -81,10 +90,10 @@ const ChatBox = ({
       }
     });
 
-    const unsubscribeOnline = chatService.onOnlineStatus((userId, isOnline) => {
-      console.log('Online status changed:', userId, isOnline);
+    const unsubscribeOnline = chatService.onOnlineStatus((userId, online) => {
+      console.log('Online status changed:', userId, online);
       if (userId === matchId) {
-        setIsUserOnline(isOnline);
+        setIsUserOnline(online);
       }
     });
 
@@ -100,17 +109,48 @@ const ChatBox = ({
   }, [conversationId, matchId]);
 
   useEffect(() => {
-    if (messagesEndRef.current) {
+    const container = containerRef.current;
+    if (!container) return;
+    
+    const handleScroll = () => {
+      if (!container) return;
+      const isNearBottom = 
+        container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      shouldScrollToBottom.current = isNearBottom;
+    };
+    
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!isLoadingMore.current && messagesEndRef.current && shouldScrollToBottom.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
-  const loadMore = () => {
-    if (hasMore) {
-      const nextPage = page + 1;
-      fetchMessages(nextPage);
-      setPage(nextPage);
-    }
+  const loadMore = async () => {
+    if (!hasMore || !containerRef.current || isLoadingMore.current) return;
+    
+    isLoadingMore.current = true;
+    setIsLoadingMoreState(true);
+    
+    const container = containerRef.current;
+    const scrollPos = container.scrollTop;
+    prevScrollHeight.current = container.scrollHeight;
+    
+    const nextPage = page + 1;
+    await fetchMessages(nextPage);
+    setPage(nextPage);
+
+    requestAnimationFrame(() => {
+      if (containerRef.current) {
+        const newHeight = containerRef.current.scrollHeight;
+        containerRef.current.scrollTop = newHeight - prevScrollHeight.current + scrollPos;
+      }
+      isLoadingMore.current = false;
+      setIsLoadingMoreState(false);
+    });
   };
 
   const handleSend = async () => {
@@ -126,6 +166,7 @@ const ChatBox = ({
           []
         );
         setText('');
+        shouldScrollToBottom.current = true;
       } catch (error) {
         console.error('Error sending message:', error);
       }
@@ -151,26 +192,27 @@ const ChatBox = ({
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-  const files = event.target.files;
-  if (files && files.length > 0) {
-    try {
-      const file = files[0];
-      const accountId = Number(localStorage.getItem('accountId'));
-      const messageId = await chatService.sendMessage(
-        conversationId,
-        accountId,
-        '',
-        [],
-        []
-      );
-      const mediaUrl = await uploadMedia(file, messageId);
-      console.log('File uploaded, URL:', mediaUrl);
-      event.target.value = '';
-    } catch (error) {
-      console.error('Error uploading file:', error);
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      try {
+        const file = files[0];
+        const accountId = Number(localStorage.getItem('accountId'));
+        const messageId = await chatService.sendMessage(
+          conversationId,
+          accountId,
+          '',
+          [],
+          []
+        );
+        const mediaUrl = await uploadMedia(file, messageId);
+        console.log('File uploaded, URL:', mediaUrl);
+        event.target.value = '';
+        shouldScrollToBottom.current = true;
+      } catch (error) {
+        console.error('Error uploading file:', error);
+      }
     }
-  }
-};
+  };
 
   return (
     <div className="flex flex-col h-screen pt-16 overflow-hidden">
@@ -202,23 +244,34 @@ const ChatBox = ({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col justify-end">
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col"
+      >
+        <div className="mt-auto" />
         {hasMore && (
           <div className="text-center mb-2">
-            <Button size="sm" variant="outline" onClick={loadMore}>
-              Xem tin nhắn cũ hơn
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={loadMore}
+              disabled={isLoadingMoreState}
+            >
+              {isLoadingMoreState ? 'Đang tải...' : 'Xem tin nhắn cũ hơn'}
             </Button>
           </div>
         )}
-        {messages.map((message, index) => (
-          <div 
-            key={index} 
+        {messages
+          .filter(m => m.text.trim() !== '' || (m.media && m.media.length > 0))
+          .map((message, index) => (
+          <div
+            key={index}
             className={`flex ${message.isMe ? 'justify-end' : 'justify-start'}`}
           >
-            <div 
+            <div
               className={`max-w-[70%] p-3 rounded-2xl ${
-                message.isMe 
-                  ? 'bg-matchup-purple text-white rounded-br-none' 
+                message.isMe
+                  ? 'bg-matchup-purple text-white rounded-br-none'  
                   : 'bg-muted rounded-bl-none'
               }`}
             >
@@ -243,6 +296,7 @@ const ChatBox = ({
           </div>
         ))}
         <div ref={messagesEndRef} />
+        
       </div>
 
       <div className="p-4 border-t">

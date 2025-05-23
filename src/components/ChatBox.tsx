@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, Image, Video } from 'lucide-react';
+import { ArrowLeft, Send, Image, Video, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,12 @@ interface ChatBoxProps {
   matchAvatar: string;
   matchId: number;
   isOnline?: boolean;
+}
+
+interface MediaPreview {
+  file: File;
+  type: string;
+  previewUrl: string;
 }
 
 const ChatBox = ({ 
@@ -27,6 +33,7 @@ const ChatBox = ({
   const [hasMore, setHasMore] = useState(true);
   const [isUserOnline, setIsUserOnline] = useState(isOnline);
   const [isLoadingMoreState, setIsLoadingMoreState] = useState(false);
+  const [mediaPreview, setMediaPreview] = useState<MediaPreview | null>(null);
   const pageSize = 50;
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -129,6 +136,15 @@ const ChatBox = ({
     }
   }, [messages]);
 
+  // Cleanup preview URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      if (mediaPreview?.previewUrl) {
+        URL.revokeObjectURL(mediaPreview.previewUrl);
+      }
+    };
+  }, [mediaPreview]);
+
   const loadMore = async () => {
     if (!hasMore || !containerRef.current || isLoadingMore.current) return;
     
@@ -154,9 +170,23 @@ const ChatBox = ({
   };
 
   const handleSend = async () => {
-    if (text.trim()) {
-      try {
-        const accountId = Number(localStorage.getItem('accountId'));
+    try {
+      const accountId = Number(localStorage.getItem('accountId'));
+      
+      // If there's media to send
+      if (mediaPreview) {
+        const messageId = await chatService.sendMessage(
+          conversationId,
+          accountId,
+          text.trim(),
+          [],
+          []
+        );
+        await uploadMedia(mediaPreview.file, messageId);
+        setMediaPreview(null);
+      } 
+      // If there's only text to send
+      else if (text.trim()) {
         console.log('Sending message:', { conversationId, accountId, text: text.trim() });
         await chatService.sendMessage(
           conversationId,
@@ -165,16 +195,20 @@ const ChatBox = ({
           [],
           []
         );
-        setText('');
-        shouldScrollToBottom.current = true;
-      } catch (error) {
-        console.error('Error sending message:', error);
+      } else {
+        // Nothing to send
+        return;
       }
+      
+      setText('');
+      shouldScrollToBottom.current = true;
+    } catch (error) {
+      console.error('Error sending message:', error);
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && (text.trim() || mediaPreview)) {
       handleSend();
     }
   };
@@ -196,22 +230,31 @@ const ChatBox = ({
     if (files && files.length > 0) {
       try {
         const file = files[0];
-        const accountId = Number(localStorage.getItem('accountId'));
-        const messageId = await chatService.sendMessage(
-          conversationId,
-          accountId,
-          '',
-          [],
-          []
-        );
-        const mediaUrl = await uploadMedia(file, messageId);
-        console.log('File uploaded, URL:', mediaUrl);
+        const fileType = file.type.startsWith('image/') ? 'image' : 'video';
+        
+        // Create preview URL
+        const previewUrl = URL.createObjectURL(file);
+        
+        // Set media preview instead of directly uploading
+        setMediaPreview({
+          file,
+          type: fileType,
+          previewUrl
+        });
+        
+        // Reset file input
         event.target.value = '';
-        shouldScrollToBottom.current = true;
       } catch (error) {
-        console.error('Error uploading file:', error);
+        console.error('Error preparing file:', error);
       }
     }
+  };
+
+  const cancelMediaPreview = () => {
+    if (mediaPreview?.previewUrl) {
+      URL.revokeObjectURL(mediaPreview.previewUrl);
+    }
+    setMediaPreview(null);
   };
 
   return (
@@ -299,6 +342,36 @@ const ChatBox = ({
         
       </div>
 
+      {/* Media Preview Area */}
+      {mediaPreview && (
+        <div className="p-4 border-t border-b bg-gray-50">
+          <div className="relative w-fit mx-auto">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 rounded-full p-1 h-8 w-8"
+              onClick={cancelMediaPreview}
+            >
+              <X size={16} className="text-white" />
+            </Button>
+            
+            {mediaPreview.type === 'image' ? (
+              <img 
+                src={mediaPreview.previewUrl} 
+                alt="Preview" 
+                className="max-h-48 rounded-lg mx-auto object-contain"
+              />
+            ) : (
+              <video 
+                src={mediaPreview.previewUrl} 
+                className="max-h-48 rounded-lg mx-auto object-contain" 
+                controls
+              />
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="p-4 border-t">
         <div className="flex items-center gap-2">
           <Button 
@@ -343,7 +416,7 @@ const ChatBox = ({
           <Button
             onClick={handleSend}
             className="bg-matchup-purple hover:bg-matchup-purple-dark h-12 w-12 rounded-full p-0"
-            disabled={!text.trim()}
+            disabled={!text.trim() && !mediaPreview}
           >
             <Send size={18} />
           </Button>

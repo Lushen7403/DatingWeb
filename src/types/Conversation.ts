@@ -6,5 +6,7 @@ export interface Conversation {
   name: string;
   avatar?: string;
   isOnline?: boolean;
-  lastMessage?: Message;
+  lastMessage?: string;
+  otherUserId?: number;    
+  lastMessageAt?: string; 
 }

@@ -6,11 +6,13 @@ import MatchPreferences from './MatchPreferences';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import NotificationPopup from './NotificationPopup';
+import { notificationService } from '@/lib/notificationService';
+import { getUnreadNotificationCount } from '@/lib/notificationApi';
 
 const Header = () => {
   const [showPreferences, setShowPreferences] = useState(false);
   const [diamonds, setDiamonds] = useState(0);
-  const [unreadNotifications, setUnreadNotifications] = useState(4); // Start with some unread notifications
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [notificationOpen, setNotificationOpen] = useState(false);
 
   useEffect(() => {
@@ -41,9 +43,31 @@ const Header = () => {
       }
     }, 1000);
 
+    // Khi vào trang, luôn lấy số lượng chưa đọc từ API
+    const fetchUnread = async () => {
+      const accountId = Number(localStorage.getItem('accountId'));
+      if (accountId) {
+        const count = await getUnreadNotificationCount(accountId);
+        setUnreadNotifications(count);
+      }
+    };
+    fetchUnread();
+
+    // Realtime: tăng khi có notification mới, giảm khi mark as read
+    const unsubscribeNotification = notificationService.onNotification((notification) => {
+      if (!notification.isRead) {
+        setUnreadNotifications(prev => prev + 1);
+      }
+    });
+    const unsubscribeMarkedAsRead = notificationService.onMarkedAsRead(() => {
+      setUnreadNotifications(prev => Math.max(0, prev - 1));
+    });
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(interval);
+      unsubscribeNotification();
+      unsubscribeMarkedAsRead();
     };
   }, []);
 
@@ -100,7 +124,7 @@ const Header = () => {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[340px] p-0" align="end">
-              <NotificationPopup onClose={handleCloseNotifications} />
+              <NotificationPopup onClose={handleCloseNotifications} setUnreadCount={setUnreadNotifications} />
             </PopoverContent>
           </Popover>
           

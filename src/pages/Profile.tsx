@@ -20,6 +20,7 @@ const Profile = () => {
         const profileData = await getProfile(parseInt(accountId));
         const userData: User = {
           id: 'self',
+          accountId: profileData.accountId,
           name: profileData.fullName,
           birthdate: profileData.birthday,
           gender: profileData.genderId === 1 ? 'Nam' : profileData.genderId === 2 ? 'Nữ' : 'Khác',

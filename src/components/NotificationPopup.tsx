@@ -1,193 +1,131 @@
-
-import { useState } from 'react';
-import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Bell, MessageCircle, Heart, Check } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Notification } from "@/types/Notification";
+import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
 import { vi } from 'date-fns/locale';
-import { Badge } from "@/components/ui/badge";
-import { useNavigate } from 'react-router-dom';
+import { notificationService } from '@/lib/notificationService';
+import { getNotificationsByAccountId, markAllAsRead } from '@/lib/notificationApi';
+import { Notification } from '@/types/Notification';
 
-// Sample notification data
-const dummyNotifications: Record<string, Notification[]> = {
-  system: [
-    {
-      id: '1',
-      type: 'system',
-      title: 'Chào mừng đến với MatchUp!',
-      content: 'Cảm ơn bạn đã tham gia MatchUp. Bắt đầu khám phá ngay nhé!',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-      read: false,
-    },
-    {
-      id: '2',
-      type: 'system',
-      title: 'Cập nhật mới',
-      content: 'Chúng tôi vừa ra mắt tính năng mới. Kiểm tra ngay!',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
-      read: true,
-    },
-  ],
-  message: [
-    {
-      id: '3',
-      type: 'message',
-      title: 'Tin nhắn mới từ Thảo',
-      content: 'Xin chào, bạn có khỏe không?',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30),
-      read: false,
-      image: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e',
-    },
-  ],
-  match: [
-    {
-      id: '4',
-      type: 'match',
-      title: 'Tuấn đã thích bạn',
-      content: 'Tuấn đã thích hồ sơ của bạn. Bạn có muốn xem hồ sơ của họ không?',
-      timestamp: new Date(Date.now() - 1000 * 60 * 120),
-      read: false,
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d',
-      profileId: '5',
-    },
-    {
-      id: '5',
-      type: 'match',
-      title: 'Phương đã thích bạn',
-      content: 'Phương đã thích hồ sơ của bạn. Bạn có muốn xem hồ sơ của họ không?',
-      timestamp: new Date(Date.now() - 1000 * 60 * 180),
-      read: true,
-      image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330',
-      profileId: '6',
-    },
-  ],
-  match_success: [
-    {
-      id: '6',
-      type: 'match_success',
-      title: 'Bạn đã match với Hùng',
-      content: 'Chúc mừng! Bạn và Hùng đã match. Hãy bắt đầu cuộc trò chuyện ngay!',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60),
-      read: false,
-      image: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce',
-      profileId: '7',
-    },
-  ],
-};
-
-interface NotificationItemProps {
-  notification: Notification;
-  onRead: (id: string) => void;
-  onClose?: () => void;
+function mapNotificationType(typeId: number): 'system' | 'message' | 'match' | 'swipe' {
+  switch (typeId) {
+    case 1: return 'message';
+    case 2: return 'system';
+    case 3: return 'match';
+    case 4: return 'swipe';
+    default: return 'system';
+  }
 }
-
-const NotificationItem = ({ notification, onRead, onClose }: NotificationItemProps) => {
-  const navigate = useNavigate();
-  const formattedTime = format(new Date(notification.timestamp), 'HH:mm', { locale: vi });
-  const isToday = new Date().getDate() === notification.timestamp.getDate();
-  const dateDisplay = isToday 
-    ? `Hôm nay lúc ${formattedTime}` 
-    : format(notification.timestamp, 'dd/MM/yyyy HH:mm', { locale: vi });
-  
-  const handleClick = () => {
-    if (!notification.read) {
-      onRead(notification.id);
-    }
-    
-    // Navigation logic based on notification type
-    switch(notification.type) {
-      case 'system':
-        // System notifications typically just mark as read
-        break;
-      case 'message':
-        navigate('/messages');
-        break;
-      case 'match':
-        if (notification.profileId) {
-          navigate(`/like-detail/${notification.profileId}`);
-        } else {
-          navigate('/likes');
-        }
-        break;
-      case 'match_success':
-        if (notification.profileId) {
-          navigate(`/messages`); // Navigate to messages after a successful match
-        }
-        break;
-    }
-    
-    // Close the popover after navigation
-    if (onClose) {
-      onClose();
-    }
-  };
-
-  return (
-    <div 
-      className={`p-3 border-b hover:bg-muted/50 cursor-pointer flex items-start ${!notification.read ? 'bg-muted/30' : ''}`}
-      onClick={handleClick}
-    >
-      <div className="mr-3 flex-shrink-0">
-        {notification.image ? (
-          <Avatar>
-            <AvatarImage src={notification.image} alt={notification.title} />
-            <AvatarFallback>{notification.title.charAt(0)}</AvatarFallback>
-          </Avatar>
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            {notification.type === 'system' && <Bell className="text-primary h-5 w-5" />}
-            {notification.type === 'message' && <MessageCircle className="text-primary h-5 w-5" />}
-            {notification.type === 'match' && <Heart className="text-primary h-5 w-5" />}
-            {notification.type === 'match_success' && <Check className="text-primary h-5 w-5" />}
-          </div>
-        )}
-      </div>
-      <div className="flex-1">
-        <div className="flex justify-between items-start">
-          <h4 className="font-medium text-sm">{notification.title}</h4>
-          {!notification.read && (
-            <Badge variant="secondary" className="ml-2 bg-primary text-white text-xs px-1.5 py-0.5">Mới</Badge>
-          )}
-        </div>
-        <p className="text-sm text-muted-foreground line-clamp-2">{notification.content}</p>
-        <p className="text-xs text-muted-foreground mt-1">{dateDisplay}</p>
-      </div>
-    </div>
-  );
-};
 
 interface NotificationPopupProps {
   onClose?: () => void;
+  setUnreadCount?: (count: number) => void;
 }
 
-const NotificationPopup = ({ onClose }: NotificationPopupProps) => {
-  const [notifications, setNotifications] = useState<Record<string, Notification[]>>(dummyNotifications);
+const NotificationPopup = ({ onClose, setUnreadCount }: NotificationPopupProps) => {
+  const [notifications, setNotifications] = useState<Record<string, Notification[]>>({
+    system: [],
+    message: [],
+    match: [],
+    swipe: []
+  });
   const [activeTab, setActiveTab] = useState<string>("all");
-  
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  // Load notifications from API
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      setLoading(true);
+      try {
+        const accountId = Number(localStorage.getItem('accountId'));
+        const apiNotifs = await getNotificationsByAccountId(accountId);
+
+        const grouped: Record<string, Notification[]> = {
+          system: [],
+          message: [],
+          match: [],
+          swipe: []
+        };
+
+        apiNotifs.forEach(n => {
+          const type = mapNotificationType(n.notificationTypeId);
+          grouped[type].push(n);
+        });
+
+        setNotifications(grouped);
+      } catch (e) {
+        // Xử lý lỗi nếu cần
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+
+  // Realtime: nhận notification mới
+  useEffect(() => {
+    const unsubscribeNotification = notificationService.onNotification((notification: Notification) => {
+      const type = mapNotificationType(notification.notificationTypeId);
+      setNotifications(prev => ({
+        ...prev,
+        [type]: [notification, ...prev[type]]
+      }));
+    });
+
+    // Mark as read realtime
+    const unsubscribeMarkedAsRead = notificationService.onMarkedAsRead((notificationId: number) => {
+      setNotifications(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(key => {
+          updated[key] = updated[key].map(n =>
+            n.notificationId === notificationId ? { ...n, isRead: true } : n
+          );
+        });
+        return updated;
+      });
+    });
+
+    return () => {
+      unsubscribeNotification();
+      unsubscribeMarkedAsRead();
+    };
+  }, []);
+
+  // Sau khi load notifications hoặc khi state notifications thay đổi:
+  useEffect(() => {
+    if (setUnreadCount) {
+      const totalUnread = [
+        ...notifications.system,
+        ...notifications.message,
+        ...notifications.match,
+        ...notifications.swipe
+      ].filter(n => !n.isRead).length;
+      setUnreadCount(totalUnread);
+    }
+  }, [notifications, setUnreadCount]);
+
   const getTypeLabel = (type: string): string => {
     switch (type) {
       case 'system': return 'Hệ thống';
       case 'message': return 'Tin nhắn';
       case 'match': return 'Lượt thích';
-      case 'match_success': return 'Match';
+      case 'swipe': return 'Thích';
       case 'all': return 'Tất cả';
       default: return type;
     }
   };
-  
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'system': return <Bell className="h-4 w-4" />;
       case 'message': return <MessageCircle className="h-4 w-4" />;
       case 'match': return <Heart className="h-4 w-4" />;
-      case 'match_success': return <Check className="h-4 w-4" />;
+      case 'swipe': return <Check className="h-4 w-4" />;
       default: return null;
     }
   };
@@ -197,60 +135,86 @@ const NotificationPopup = ({ onClose }: NotificationPopupProps) => {
       ...notifications.system,
       ...notifications.message,
       ...notifications.match,
-      ...notifications.match_success
-    ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      ...notifications.swipe
+    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   };
-  
-  const handleReadNotification = (id: string) => {
-    const updatedNotifications = {...notifications};
-    
-    for (const key in updatedNotifications) {
-      updatedNotifications[key] = updatedNotifications[key].map(notif => 
-        notif.id === id ? { ...notif, read: true } : notif
-      );
+
+  const handleReadNotification = async (notification: Notification) => {
+    try {
+      await notificationService.markAsRead(notification.notificationId);
+      // Điều hướng theo loại thông báo
+      const type = mapNotificationType(notification.notificationTypeId);
+      if (type === 'swipe' && notification.referenceId) {
+        navigate(`/view-profile/${notification.referenceId}`);
+      } else if ((type === 'match' || type === 'message') && notification.referenceId) {
+        navigate(`/messages/${notification.referenceId}`);
+      }
+      if (onClose) onClose();
+    } catch (error) {
+      // Xử lý lỗi nếu cần
     }
-    
-    setNotifications(updatedNotifications);
   };
-  
+
   const getUnreadCount = (type: string): number => {
     if (type === 'all') {
-      return getAllNotifications().filter(n => !n.read).length;
+      return getAllNotifications().filter(n => !n.isRead).length;
     }
-    return notifications[type]?.filter(n => !n.read).length || 0;
+    return notifications[type]?.filter(n => !n.isRead).length || 0;
   };
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
   };
 
-  const renderNotifications = () => {
-    if (activeTab === 'all') {
-      const allNotifs = getAllNotifications();
-      if (!allNotifs.length) return <p className="text-center p-4 text-muted-foreground">Không có thông báo</p>;
-      return allNotifs.map(notification => (
-        <NotificationItem 
-          key={notification.id} 
-          notification={notification} 
-          onRead={handleReadNotification} 
-          onClose={onClose}
-        />
-      ));
+  const handleMarkAllAsRead = async () => {
+    try {
+      const accountId = Number(localStorage.getItem('accountId'));
+      await markAllAsRead(accountId);
+      // Cập nhật local state
+      setNotifications(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(key => {
+          updated[key] = updated[key].map(n => ({ ...n, isRead: true }));
+        });
+        return updated;
+      });
+      if (setUnreadCount) setUnreadCount(0);
+    } catch (e) {
+      // Xử lý lỗi nếu cần
     }
-    
-    const typeNotifs = notifications[activeTab] || [];
-    if (!typeNotifs.length) return <p className="text-center p-4 text-muted-foreground">Không có thông báo</p>;
-    return typeNotifs.map(notification => (
-      <NotificationItem 
-        key={notification.id} 
-        notification={notification} 
-        onRead={handleReadNotification}
-        onClose={onClose} 
-      />
+  };
+
+  const renderNotifications = () => {
+    const notifs = activeTab === 'all' ? getAllNotifications() : notifications[activeTab] || [];
+    if (!notifs.length) return <p className="text-center p-4 text-muted-foreground">Không có thông báo</p>;
+    return notifs.map(notification => (
+      <div
+        key={notification.notificationId}
+        className={`p-3 border-b hover:bg-muted/50 cursor-pointer flex items-start ${!notification.isRead ? 'bg-muted/30' : ''}`}
+        onClick={() => handleReadNotification(notification)}
+      >
+        <div className="mr-3 flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            {getTypeIcon(mapNotificationType(notification.notificationTypeId))}
+          </div>
+        </div>
+        <div className="flex-1">
+          <div className="flex justify-between items-start">
+            <h4 className="font-medium text-sm">{getTypeLabel(mapNotificationType(notification.notificationTypeId))}</h4>
+            {!notification.isRead && (
+              <Badge variant="secondary" className="ml-2 bg-primary text-white text-xs px-1.5 py-0.5">Mới</Badge>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground line-clamp-2">{notification.content}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {format(new Date(notification.createdAt), 'dd/MM/yyyy HH:mm', { locale: vi })}
+          </p>
+        </div>
+      </div>
     ));
   };
 
-  const totalUnread = getAllNotifications().filter(n => !n.read).length;
+  const totalUnread = getUnreadCount('all');
 
   return (
     <div>
@@ -258,19 +222,11 @@ const NotificationPopup = ({ onClose }: NotificationPopupProps) => {
         <div className="flex justify-between items-center p-3 border-b">
           <h3 className="font-semibold">Thông báo</h3>
           {totalUnread > 0 && (
-            <Button variant="ghost" size="sm" onClick={() => {
-              // Mark all as read
-              const updatedNotifications = {...notifications};
-              for (const key in updatedNotifications) {
-                updatedNotifications[key] = updatedNotifications[key].map(notif => ({ ...notif, read: true }));
-              }
-              setNotifications(updatedNotifications);
-            }}>
+            <Button variant="ghost" size="sm" onClick={handleMarkAllAsRead}>
               Đánh dấu đã đọc tất cả
             </Button>
           )}
         </div>
-        
         <TabsList className="grid grid-cols-5 p-1">
           <TabsTrigger value="all" className="relative">
             Tất cả
@@ -304,18 +260,17 @@ const NotificationPopup = ({ onClose }: NotificationPopupProps) => {
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="match_success" className="relative">
+          <TabsTrigger value="swipe" className="relative">
             <Check className="h-4 w-4 mr-1" />
-            {getUnreadCount('match_success') > 0 && (
+            {getUnreadCount('swipe') > 0 && (
               <Badge variant="secondary" className="absolute -top-1 -right-1 bg-primary text-white text-xs px-1.5 py-0.5 rounded-full">
-                {getUnreadCount('match_success')}
+                {getUnreadCount('swipe')}
               </Badge>
             )}
           </TabsTrigger>
         </TabsList>
-        
         <div className="mt-1 max-h-80 overflow-y-auto">
-          {renderNotifications()}
+          {loading ? <div className="p-4 text-center text-muted-foreground">Đang tải...</div> : renderNotifications()}
         </div>
       </Tabs>
     </div>

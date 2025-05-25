@@ -1,15 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, Diamond, CreditCard } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { getActiveRechargePackages, getDiamondBalance, RechargePackage } from '@/lib/diamondApi';
 
 const DiamondRecharge = () => {
   const navigate = useNavigate();
   const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [packages, setPackages] = useState<RechargePackage[]>([]);
+  const [diamond, setDiamond] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+  const [loadingDiamond, setLoadingDiamond] = useState(true);
 
   const diamondPackages = [
     { id: 1, amount: 100, price: 20000, popular: false },
@@ -17,6 +22,39 @@ const DiamondRecharge = () => {
     { id: 3, amount: 500, price: 80000, popular: false },
     { id: 4, amount: 1000, price: 150000, popular: false },
   ];
+
+  useEffect(() => {
+    const fetchPackages = async () => {
+      setLoading(true);
+      try {
+        const data = await getActiveRechargePackages();
+        setPackages(data);
+      } catch (e) {
+        setPackages([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPackages();
+  }, []);
+
+  useEffect(() => {
+    const fetchDiamond = async () => {
+      setLoadingDiamond(true);
+      try {
+        const accountId = Number(localStorage.getItem('accountId'));
+        if (accountId) {
+          const balance = await getDiamondBalance(accountId);
+          setDiamond(balance);
+        }
+      } catch (e) {
+        setDiamond(0);
+      } finally {
+        setLoadingDiamond(false);
+      }
+    };
+    fetchDiamond();
+  }, []);
 
   const handlePurchase = () => {
     if (selectedPackage === null) {
@@ -57,35 +95,33 @@ const DiamondRecharge = () => {
         <div>
           <p className="text-sm font-medium text-amber-800">Kim cương hiện tại</p>
           <p className="text-2xl font-bold text-amber-900">
-            {localStorage.getItem('diamonds') || '100'}
+            {loadingDiamond ? (
+              <span className="text-muted-foreground">Đang tải...</span>
+            ) : (
+              diamond
+            )}
           </p>
         </div>
       </div>
 
       <h3 className="text-lg font-semibold mb-3">Chọn gói kim cương</h3>
-      <div className="flex flex-col gap-3 mb-6">
-        {diamondPackages.map((pkg) => (
-          <Card
-            key={pkg.id}
-            className={`w-full p-5 flex items-center justify-between cursor-pointer transition-all text-lg font-medium ${
-              selectedPackage === pkg.id
-                ? 'border-primary ring-2 ring-primary bg-primary/5' : 'hover:border-primary/50'
-            }`}
-            onClick={() => setSelectedPackage(pkg.id)}
-          >
-            <div className="flex items-center gap-2">
-              <Diamond className="h-6 w-6 text-amber-400" />
-              <span>{pkg.amount}</span>
-              {pkg.popular && (
-                <Badge variant="secondary" className="bg-amber-400 text-white ml-2">
-                  Phổ biến
-                </Badge>
-              )}
+      {loading ? (
+        <div className="text-center text-muted-foreground">Đang tải gói nạp...</div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4">
+          {packages.map(pkg => (
+            <div key={pkg.id} className="flex items-center justify-between border rounded-lg p-4 shadow-sm">
+              <div>
+                <div className="text-lg font-semibold text-matchup-purple">{pkg.diamond} Kim cương</div>
+                <div className="text-sm text-muted-foreground">{pkg.price.toLocaleString()} VNĐ</div>
+              </div>
+              <Button>
+                Nạp ngay
+              </Button>
             </div>
-            <span className="text-primary text-xl font-bold">{formatPrice(pkg.price)}</span>
-          </Card>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       <Button
         className="w-full h-12 text-base font-semibold rounded-xl"

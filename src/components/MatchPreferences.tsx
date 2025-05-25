@@ -16,9 +16,10 @@ import { getMatchCondition, createMatchCondition, updateMatchCondition } from '@
 interface MatchPreferencesProps {
   open: boolean;
   onClose: () => void;
+  onCriteriaChange?: () => void;
 }
 
-const MatchPreferences = ({ open, onClose }: MatchPreferencesProps) => {
+const MatchPreferences = ({ open, onClose, onCriteriaChange }: MatchPreferencesProps) => {
   const [gender, setGender] = useState<string>('any');
   const [distance, setDistance] = useState<number>(25);
   const [ageRange, setAgeRange] = useState<number[]>([18, 35]);
@@ -77,7 +78,10 @@ const MatchPreferences = ({ open, onClose }: MatchPreferencesProps) => {
         await createMatchCondition(dto);
         toast.success('Tạo tiêu chí thành công!');
       }
+      if (onCriteriaChange) onCriteriaChange();
       onClose();
+      // Reload the page after successful save
+      window.location.reload();
     } catch (e) {
       toast.error('Có lỗi khi lưu tiêu chí!');
     }

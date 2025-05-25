@@ -1,48 +1,51 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/Header';
 import ProfileCard from '@/components/ProfileCard';
 import { toast } from 'sonner';
 import { getProfilesToMatch, Profile, getDistance } from '@/lib/profileApi';
+import MatchPreferences from '@/components/MatchPreferences';
 
 const Index = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [distance, setDistance] = useState<number>(0);
+  const [showPreferences, setShowPreferences] = useState(false);
+  const [criteriaChanged, setCriteriaChanged] = useState(0);
+
+  const fetchProfiles = useCallback(async () => {
+    try {
+      const accountId = localStorage.getItem('accountId');
+      if (!accountId) {
+        toast.error('Vui lòng đăng nhập để sử dụng tính năng này');
+        return;
+      }
+      const data = await getProfilesToMatch(Number(accountId));
+      // Handle .NET $values array structure safely
+      if (Array.isArray(data)) {
+        setProfiles(data);
+      } else if (
+        data &&
+        typeof data === 'object' &&
+        '$values' in data &&
+        Array.isArray((data as any).$values)
+      ) {
+        setProfiles((data as any).$values);
+      } else {
+        setProfiles([]);
+      }
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
+      toast.error('Không thể tải danh sách hồ sơ');
+      setProfiles([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchProfiles = async () => {
-      try {
-        const accountId = localStorage.getItem('accountId');
-        if (!accountId) {
-          toast.error('Vui lòng đăng nhập để sử dụng tính năng này');
-          return;
-        }
-        const data = await getProfilesToMatch(Number(accountId));
-        // Handle .NET $values array structure safely
-        if (Array.isArray(data)) {
-          setProfiles(data);
-        } else if (
-          data &&
-          typeof data === 'object' &&
-          '$values' in data &&
-          Array.isArray((data as any).$values)
-        ) {
-          setProfiles((data as any).$values);
-        } else {
-          setProfiles([]);
-        }
-      } catch (error) {
-        console.error('Error fetching profiles:', error);
-        toast.error('Không thể tải danh sách hồ sơ');
-        setProfiles([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProfiles();
-  }, []);
+  }, [fetchProfiles, criteriaChanged]);
 
   // Fetch distance for current profile
   useEffect(() => {
@@ -82,6 +85,12 @@ const Index = () => {
         }
       });
     }, 500);
+  };
+
+  const handleCriteriaChange = () => {
+    setCriteriaChanged(prev => prev + 1); // Trigger reload
+    // Reload the page to get fresh data
+    window.location.reload();
   };
 
   if (loading) {
@@ -127,35 +136,42 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="pt-20 pb-20 px-4">
-        <div className="swipe-card-container">
-          {profiles.map((profile, index) => {
-            if (!profile || !profile.id || !profile.fullName) {
-              console.warn('Invalid profile data:', profile);
-              return null;
-            }
-            return (
-              <div
-                key={profile.id}
-                className={index === currentProfileIndex ? 'block' : 'hidden'}
-              >
-                <ProfileCard
-                  id={profile.id.toString()}
-                  accountId={profile.accountId.toString()}
-                  name={profile.fullName}
-                  age={calculateAge(profile.birthday)}
-                  distance={distance}
-                  avatar={profile.avatar || ''}
-                  onAction={handleAction}
-                />
-              </div>
-            );
-          })}
+    <>
+      <MatchPreferences
+        open={showPreferences}
+        onClose={() => setShowPreferences(false)}
+        onCriteriaChange={handleCriteriaChange}
+      />
+      <div className="min-h-screen bg-background">
+        <Header />
+        <div className="pt-20 pb-20 px-4">
+          <div className="swipe-card-container">
+            {profiles.map((profile, index) => {
+              if (!profile || !profile.id || !profile.fullName) {
+                console.warn('Invalid profile data:', profile);
+                return null;
+              }
+              return (
+                <div
+                  key={profile.id}
+                  className={index === currentProfileIndex ? 'block' : 'hidden'}
+                >
+                  <ProfileCard
+                    id={profile.id.toString()}
+                    accountId={profile.accountId.toString()}
+                    name={profile.fullName}
+                    age={calculateAge(profile.birthday)}
+                    distance={distance}
+                    avatar={profile.avatar || ''}
+                    onAction={handleAction}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -1,11 +1,9 @@
-
 export interface Notification {
-  id: string;
-  type: 'system' | 'message' | 'match' | 'match_success';
-  title: string;
+  notificationId: number;
+  userId: number;
+  notificationTypeId: number;
   content: string;
-  timestamp: Date;
-  read: boolean;
-  image?: string;
-  profileId?: string; // Add profileId for navigation to specific profiles
+  isRead: boolean;
+  createdAt: string;
+  referenceId?: number;
 }

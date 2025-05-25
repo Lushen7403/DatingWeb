@@ -1,10 +1,31 @@
 import { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Send, Image, Video, X } from 'lucide-react';
+import { ArrowLeft, Send, Image, Video, X, MoreVertical } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Message } from '@/types/Message';
 import { chatService, getMessages, uploadMedia } from '@/lib/chatService';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { vi } from 'date-fns/locale';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { isEitherBlocked, blockUser, unblockUser } from '@/lib/blockApi';
+import { authService } from '@/lib/authService';
 
 interface ChatBoxProps {
   conversationId: number;
@@ -12,6 +33,9 @@ interface ChatBoxProps {
   matchAvatar: string;
   matchId: number;
   isOnline?: boolean;
+  otherUserId: number;
+  otherUserName: string;
+  onBack: () => void;
 }
 
 interface MediaPreview {
@@ -25,7 +49,10 @@ const ChatBox = ({
   matchName, 
   matchAvatar,
   matchId,
-  isOnline = false
+  isOnline = false,
+  otherUserId,
+  otherUserName,
+  onBack
 }: ChatBoxProps) => {
   const [text, setText] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -34,6 +61,10 @@ const ChatBox = ({
   const [isUserOnline, setIsUserOnline] = useState(isOnline);
   const [isLoadingMoreState, setIsLoadingMoreState] = useState(false);
   const [mediaPreview, setMediaPreview] = useState<MediaPreview | null>(null);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [showBlockDialog, setShowBlockDialog] = useState(false);
+  const [showUnblockDialog, setShowUnblockDialog] = useState(false);
+  const [isBlocking, setIsBlocking] = useState(false);
   const pageSize = 50;
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -47,13 +78,14 @@ const ChatBox = ({
   const fetchMessages = async (pageToLoad = 1) => {
     if (!conversationId) return;
     const msgs = await getMessages(conversationId, pageToLoad, pageSize);
+    const accountId = authService.getAccountId();
     const mapped = msgs
       .filter(Boolean)
       .map((msg: any) => ({
         id: msg.id.toString(),
         text: msg.messageText,
         timestamp: msg.sentAt,
-        isMe: msg.senderId === Number(localStorage.getItem('accountId')),
+        isMe: msg.senderId === accountId,
         media: (msg.media || []).map((m: any) => ({
           url: m.mediaUrl,
           type: m.mediaType
@@ -84,6 +116,7 @@ const ChatBox = ({
 
     initializeChat();
 
+    const accountId = authService.getAccountId();
     const unsubscribeMessage = chatService.onMessage((message) => {
       console.log('Received message:', message);
       if (message.conversationId === conversationId) {
@@ -91,7 +124,7 @@ const ChatBox = ({
           id: message.id.toString(),
           text: message.messageText,
           timestamp: message.sentAt,
-          isMe: message.senderId === Number(localStorage.getItem('accountId')),
+          isMe: message.senderId === accountId,
           media: message.media || []
         }]);
       }
@@ -136,7 +169,6 @@ const ChatBox = ({
     }
   }, [messages]);
 
-  // Cleanup preview URLs when component unmounts
   useEffect(() => {
     return () => {
       if (mediaPreview?.previewUrl) {
@@ -144,6 +176,22 @@ const ChatBox = ({
       }
     };
   }, [mediaPreview]);
+
+  useEffect(() => {
+    const accountId = authService.getAccountId();
+    if (!accountId) return;
+
+    const checkBlockStatus = async () => {
+      try {
+        const blocked = await isEitherBlocked(accountId, matchId);
+        setIsBlocked(blocked);
+      } catch (error) {
+        console.error('Error checking block status:', error);
+      }
+    };
+
+    checkBlockStatus();
+  }, [matchId]);
 
   const loadMore = async () => {
     if (!hasMore || !containerRef.current || isLoadingMore.current) return;
@@ -171,7 +219,8 @@ const ChatBox = ({
 
   const handleSend = async () => {
     try {
-      const accountId = Number(localStorage.getItem('accountId'));
+      const accountId = authService.getAccountId();
+      if (!accountId) return;
       
       // If there's media to send
       if (mediaPreview) {
@@ -257,6 +306,44 @@ const ChatBox = ({
     setMediaPreview(null);
   };
 
+  const handleBlock = async () => {
+    const accountId = authService.getAccountId();
+    if (!accountId || !matchId) {
+      toast.error('Không thể thực hiện thao tác này');
+      return;
+    }
+    setIsBlocking(true);
+    try {
+      await blockUser(accountId, matchId);
+      setIsBlocked(true);
+      toast.success('Đã chặn người dùng này');
+    } catch (error) {
+      toast.error('Không thể chặn người dùng');
+    } finally {
+      setIsBlocking(false);
+      setShowBlockDialog(false);
+    }
+  };
+
+  const handleUnblock = async () => {
+    const accountId = authService.getAccountId();
+    if (!accountId || !matchId) {
+      toast.error('Không thể thực hiện thao tác này');
+      return;
+    }
+    setIsBlocking(true);
+    try {
+      await unblockUser(accountId, matchId);
+      setIsBlocked(false);
+      toast.success('Đã bỏ chặn người dùng này');
+    } catch (error) {
+      toast.error('Không thể bỏ chặn người dùng');
+    } finally {
+      setIsBlocking(false);
+      setShowUnblockDialog(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen pt-16 overflow-hidden">
       <div className="matchup-header">
@@ -283,7 +370,42 @@ const ChatBox = ({
             </div>
           </div>
 
-          <div className="w-8"></div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {isBlocked ? (
+                <DropdownMenuItem 
+                  onClick={() => {
+                    if (!matchId) {
+                      toast.error('Không thể thực hiện thao tác này');
+                      return;
+                    }
+                    setShowUnblockDialog(true);
+                  }}
+                  className="text-green-600"
+                >
+                  Bỏ chặn
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem 
+                  onClick={() => {
+                    if (!matchId) {
+                      toast.error('Không thể thực hiện thao tác này');
+                      return;
+                    }
+                    setShowBlockDialog(true);
+                  }}
+                  className="text-red-600"
+                >
+                  Chặn
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -372,56 +494,109 @@ const ChatBox = ({
         </div>
       )}
 
-      <div className="p-4 border-t">
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="bg-muted h-12 w-12 rounded-full"
-            onClick={handleImageUpload}
-          >
-            <Image size={20} />
-          </Button>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            className="hidden" 
-            accept="image/*"
-            onChange={handleFileChange}
-          />
-          
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="bg-muted h-12 w-12 rounded-full"
-            onClick={handleVideoUpload}
-          >
-            <Video size={20} />
-          </Button>
-          <input 
-            type="file" 
-            ref={videoInputRef} 
-            className="hidden" 
-            accept="video/*"
-            onChange={handleFileChange}
-          />
-          
-          <Input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Nhắn tin..."
-            className="matchup-input flex-1"
-          />
-          <Button
-            onClick={handleSend}
-            className="bg-matchup-purple hover:bg-matchup-purple-dark h-12 w-12 rounded-full p-0"
-            disabled={!text.trim() && !mediaPreview}
-          >
-            <Send size={18} />
-          </Button>
+      {/* Input area */}
+      {isBlocked ? (
+        <div className="p-4 border-t bg-muted/50">
+          <p className="text-center text-sm text-muted-foreground">
+            Hiện tại không thể liên lạc với người dùng này
+          </p>
         </div>
-      </div>
+      ) : (
+        <div className="p-4 border-t">
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="bg-muted h-12 w-12 rounded-full"
+              onClick={handleImageUpload}
+            >
+              <Image size={20} />
+            </Button>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="hidden" 
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="bg-muted h-12 w-12 rounded-full"
+              onClick={handleVideoUpload}
+            >
+              <Video size={20} />
+            </Button>
+            <input 
+              type="file" 
+              ref={videoInputRef} 
+              className="hidden" 
+              accept="video/*"
+              onChange={handleFileChange}
+            />
+            
+            <Input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Nhắn tin..."
+              className="matchup-input flex-1"
+            />
+            <Button
+              onClick={handleSend}
+              className="bg-matchup-purple hover:bg-matchup-purple-dark h-12 w-12 rounded-full p-0"
+              disabled={!text.trim() && !mediaPreview}
+            >
+              <Send size={18} />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Block Confirmation Dialog */}
+      <AlertDialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận chặn</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn chặn người dùng này? Sau khi chặn, bạn sẽ không thể nhắn tin với họ.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBlocking}>Hủy</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleBlock}
+              disabled={isBlocking}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isBlocking ? 'Đang xử lý...' : 'Chặn'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Unblock Confirmation Dialog */}
+      <AlertDialog open={showUnblockDialog} onOpenChange={setShowUnblockDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận bỏ chặn</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn bỏ chặn người dùng này? Sau khi bỏ chặn, bạn có thể nhắn tin với họ.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isBlocking}>Hủy</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleUnblock}
+              disabled={isBlocking}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isBlocking ? 'Đang xử lý...' : 'Bỏ chặn'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

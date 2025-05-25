@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { login } from "@/lib/accountApi";
 import { checkProfile } from "@/lib/profileApi";
+import { authService } from "@/lib/authService";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -29,36 +30,22 @@ const Login = () => {
       
       if (response && response.data && response.data.token) {
         const token = response.data.token;
+        authService.setToken(token);
         
-        localStorage.setItem('token', token);
-        localStorage.setItem('isAuthenticated', 'true');
-        
-        const tokenParts = token.split('.');
-        if (tokenParts.length === 3) {
+        const accountId = authService.getAccountId();
+        if (accountId) {
           try {
-            const payload = JSON.parse(atob(tokenParts[1]));
-            
-            if (payload.UserId) {
-              localStorage.setItem('accountId', payload.UserId.toString());
-              
-              try {
-                const hasProfile = await checkProfile(payload.UserId);
-                if (hasProfile) {
-                  window.location.href = '/';
-                } else {
-                  window.location.href = '/create-profile';
-                }
-              } catch (profileError) {
-                window.location.href = '/create-profile';
-              }
+            const hasProfile = await checkProfile(accountId);
+            if (hasProfile) {
+              window.location.href = '/';
             } else {
-              toast.error('Không thể xác thực thông tin người dùng');
+              window.location.href = '/create-profile';
             }
-          } catch (parseError) {
-            toast.error('Token không hợp lệ');
+          } catch (profileError) {
+            window.location.href = '/create-profile';
           }
         } else {
-          toast.error('Token không hợp lệ');
+          toast.error('Không thể xác thực thông tin người dùng');
         }
       } else {
         toast.error('Đăng nhập thất bại: Không nhận được token');

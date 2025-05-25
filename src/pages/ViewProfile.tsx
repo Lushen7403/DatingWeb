@@ -14,12 +14,15 @@ import {
 import { toast } from 'sonner';
 import { getProfile } from '@/lib/profileApi';
 import { swipeProfile } from '@/lib/matchApi';
+import { blockUser } from '@/lib/blockApi';
+import { createReport } from '@/lib/reportApi';
+import ReportDialog from '@/components/ReportDialog';
 
 const ViewProfile = () => {
   const { profileId } = useParams<{ profileId: string }>();
   const [profile, setProfile] = useState<User | null>(null);
+  const [showReportDialog, setShowReportDialog] = useState(false);
   const navigate = useNavigate();
-
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -94,14 +97,50 @@ const ViewProfile = () => {
     }
   };
 
-  const handleBlock = () => {
-    toast.success(`Đã chặn ${profile?.name}`);
-    navigate('/');
+  const handleBlock = async () => {
+    if (!profile) return;
+    try {
+      const accountId = localStorage.getItem('accountId');
+      if (!accountId) {
+        toast.error('Vui lòng đăng nhập');
+        navigate('/login');
+        return;
+      }
+      
+      await blockUser(Number(accountId), Number(profile.accountId));
+      toast.success(`Đã chặn ${profile.name}`);
+      navigate('/');
+    } catch (error: any) {
+      toast.error(error.message || 'Có lỗi xảy ra khi chặn người dùng');
+    }
   };
 
   const handleReport = () => {
-    toast.success(`Đã báo cáo ${profile?.name}`);
-    navigate('/');
+    setShowReportDialog(true);
+  };
+
+  const handleReportSubmit = async (reportTypeId: number, content: string) => {
+    if (!profile) return;
+    try {
+      const accountId = localStorage.getItem('accountId');
+      if (!accountId) {
+        toast.error('Vui lòng đăng nhập');
+        navigate('/login');
+        return;
+      }
+
+      await createReport(
+        Number(accountId),
+        Number(profile.accountId),
+        reportTypeId,
+        content
+      );
+      
+      toast.success('Báo cáo đã được gửi thành công');
+      navigate('/');
+    } catch (error: any) {
+      toast.error(error.message || 'Có lỗi xảy ra khi gửi báo cáo');
+    }
   };
 
   if (!profile) {
@@ -109,45 +148,53 @@ const ViewProfile = () => {
   }
 
   return (
-    <div className="bg-background min-h-screen pb-20 relative">
-      <UserProfile user={profile} editable={false} />
+    <>
+      <ReportDialog
+        isOpen={showReportDialog}
+        onClose={() => setShowReportDialog(false)}
+        onConfirm={handleReportSubmit}
+        userName={profile.name}
+      />
+      <div className="bg-background min-h-screen pb-20 relative">
+        <UserProfile user={profile} editable={false} />
 
-      <div className="fixed top-4 right-4 z-50">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <MoreVertical size={20} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={handleBlock} className="text-red-500 cursor-pointer">
-              Chặn người dùng
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleReport} className="cursor-pointer">
-              Báo cáo vi phạm
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+        <div className="fixed top-4 right-4 z-50">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreVertical size={20} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleBlock} className="text-red-500 cursor-pointer">
+                Chặn người dùng
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleReport} className="cursor-pointer">
+                Báo cáo vi phạm
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
-      <div className="fixed bottom-6 left-0 right-0 flex justify-center gap-6 z-20">
-        <Button 
-          onClick={handleDislike}
-          className="dislike-button"
-          aria-label="Dislike"
-        >
-          <X size={24} />
-        </Button>
-        
-        <Button 
-          onClick={handleMatch}
-          className="like-button"
-          aria-label="Like"
-        >
-          <Heart size={24} />
-        </Button>
+        <div className="fixed bottom-6 left-0 right-0 flex justify-center gap-6 z-20">
+          <Button 
+            onClick={handleDislike}
+            className="dislike-button"
+            aria-label="Dislike"
+          >
+            <X size={24} />
+          </Button>
+          
+          <Button 
+            onClick={handleMatch}
+            className="like-button"
+            aria-label="Like"
+          >
+            <Heart size={24} />
+          </Button>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

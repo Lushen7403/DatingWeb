@@ -24,6 +24,7 @@ const EditProfilePage = () => {
         // Chuyển đổi dữ liệu từ API sang định dạng User
         const userData: User = {
           id: 'self',
+          accountId: parseInt(accountId),
           name: profileData.fullName,
           birthdate: profileData.birthday,
           gender: profileData.genderId === 1 ? 'Nam' : profileData.genderId === 2 ? 'Nữ' : 'Khác',

@@ -2,11 +2,11 @@
 import { Message } from './Message';
 
 export interface Conversation {
-  id: string;
+  id: number;
+  otherUserId: number;
   name: string;
-  avatar?: string;
-  isOnline?: boolean;
-  lastMessage?: string;
-  otherUserId?: number;    
-  lastMessageAt?: string; 
+  avatar: string;
+  isOnline: boolean;
+  lastMessage: string;
+  lastMessageAt?: string;
 }

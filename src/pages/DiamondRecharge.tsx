@@ -77,7 +77,7 @@ const DiamondRecharge = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-4">
+    <div className="w-full max-w-md mx-auto p-4 pt-16">
       <header className="matchup-header mb-6">
         <div className="flex items-center justify-between w-full">
           <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="hover:scale-110 transition-transform">
@@ -115,31 +115,23 @@ const DiamondRecharge = () => {
                 <div className="text-lg font-semibold text-matchup-purple">{pkg.diamond} Kim cương</div>
                 <div className="text-sm text-muted-foreground">{pkg.price.toLocaleString()} VNĐ</div>
               </div>
-              <Button>
+              <Button
+                onClick={() => navigate('/payment', {
+                  state: {
+                    packageData: {
+                      packageId: pkg.id,
+                      amount: pkg.diamond,
+                      price: pkg.price,
+                    }
+                  }
+                })}
+              >
                 Nạp ngay
               </Button>
             </div>
           ))}
         </div>
       )}
-
-      <Button
-        className="w-full h-12 text-base font-semibold rounded-xl"
-        onClick={handlePurchase}
-        disabled={isProcessing || selectedPackage === null}
-      >
-        {isProcessing ? (
-          <div className="flex items-center">
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-            Đang xử lý...
-          </div>
-        ) : (
-          <>
-            <CreditCard className="mr-2 h-5 w-5" />
-            Thanh toán ngay
-          </>
-        )}
-      </Button>
     </div>
   );
 };

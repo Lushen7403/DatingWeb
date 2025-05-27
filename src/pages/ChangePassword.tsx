@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock } from "lucide-react";
+import { changePassword } from "@/lib/accountApi";
+import { authService } from "@/lib/authService";
 
 const ChangePassword = () => {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -14,7 +15,7 @@ const ChangePassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (newPassword !== confirmPassword) {
@@ -22,19 +23,25 @@ const ChangePassword = () => {
       return;
     }
     
-    if (currentPassword !== "admin123") {
-      toast.error("Mật khẩu hiện tại không đúng!");
-      return;
-    }
-    
     setIsLoading(true);
-
-    // Simulate password change request
-    setTimeout(() => {
+    try {
+      const accountId = Number(localStorage.getItem('accountId'));
+      if (!accountId) {
+        toast.error("Không tìm thấy tài khoản!");
+        setIsLoading(false);
+        return;
+      }
+      await changePassword({
+        accountId,
+        oldPassword: currentPassword,
+        newPassword,
+      });
       toast.success("Đổi mật khẩu thành công!");
       navigate("/settings");
-      setIsLoading(false);
-    }, 1500);
+    } catch (error: any) {
+      toast.error(error?.response?.data || "Đổi mật khẩu thất bại!");
+    }
+    setIsLoading(false);
   };
 
   return (

@@ -8,6 +8,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import NotificationPopup from './NotificationPopup';
 import { notificationService } from '@/lib/notificationService';
 import { getUnreadNotificationCount } from '@/lib/notificationApi';
+import { getDiamondBalance } from '@/lib/diamondApi';
+import { authService } from '@/lib/authService';
 
 const Header = () => {
   const [showPreferences, setShowPreferences] = useState(false);
@@ -16,32 +18,18 @@ const Header = () => {
   const [notificationOpen, setNotificationOpen] = useState(false);
 
   useEffect(() => {
-    // Initialize diamonds from localStorage or set default
-    const storedDiamonds = localStorage.getItem('diamonds');
-    if (!storedDiamonds) {
-      localStorage.setItem('diamonds', '100');
-      setDiamonds(100);
-    } else {
-      setDiamonds(parseInt(storedDiamonds));
-    }
-
-    // Listen for changes to localStorage
-    const handleStorageChange = () => {
-      const updatedDiamonds = localStorage.getItem('diamonds');
-      if (updatedDiamonds) {
-        setDiamonds(parseInt(updatedDiamonds));
+    const fetchDiamond = async () => {
+      const accountId = authService.getAccountId();
+      if (accountId) {
+        try {
+          const balance = await getDiamondBalance(accountId);
+          setDiamonds(balance);
+        } catch {
+          setDiamonds(0);
+        }
       }
     };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Also check for diamonds every second (to catch changes made in the same window)
-    const interval = setInterval(() => {
-      const currentDiamonds = localStorage.getItem('diamonds');
-      if (currentDiamonds && parseInt(currentDiamonds) !== diamonds) {
-        setDiamonds(parseInt(currentDiamonds));
-      }
-    }, 1000);
+    fetchDiamond();
 
     // Khi vào trang, luôn lấy số lượng chưa đọc từ API
     const fetchUnread = async () => {
@@ -64,8 +52,6 @@ const Header = () => {
     });
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
       unsubscribeNotification();
       unsubscribeMarkedAsRead();
     };
@@ -73,7 +59,6 @@ const Header = () => {
 
   const handleCloseNotifications = () => {
     setNotificationOpen(false);
-    setUnreadNotifications(0);
   };
 
   return (

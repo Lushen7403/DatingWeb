@@ -23,7 +23,7 @@ export const register = (data: { userName: string; email: string; password: stri
     }
   });
 
-export const changePassword = (data: { userName: string; oldPassword: string; newPassword: string }) =>
+export const changePassword = (data: { accountId: number; oldPassword: string; newPassword: string }) =>
   axios.post(`${API_URL}/ChangePassword`, data);
 
 export const logout = (token: string) =>

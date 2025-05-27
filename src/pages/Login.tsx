@@ -33,16 +33,33 @@ const Login = () => {
         authService.setToken(token);
         
         const accountId = authService.getAccountId();
+        const roleId = authService.getRoleId();
+        console.log('Login Info:', {
+          accountId,
+          roleId,
+          isAdmin: authService.isAdmin(),
+          token: token.substring(0, 20) + '...' // Log first 20 chars of token for security
+        });
+
         if (accountId) {
+          // Check if user is admin first
+          if (authService.isAdmin()) {
+            console.log('User is admin, redirecting to admin dashboard');
+            navigate('/admin');
+            return;
+          }
+
+          console.log('User is not admin, checking profile');
+          // If not admin, check profile
           try {
             const hasProfile = await checkProfile(accountId);
             if (hasProfile) {
-              window.location.href = '/';
+              navigate('/');
             } else {
-              window.location.href = '/create-profile';
+              navigate('/create-profile');
             }
           } catch (profileError) {
-            window.location.href = '/create-profile';
+            navigate('/create-profile');
           }
         } else {
           toast.error('Không thể xác thực thông tin người dùng');

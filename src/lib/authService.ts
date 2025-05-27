@@ -3,10 +3,13 @@ import axios from 'axios';
 const TOKEN_KEY = 'token';
 const AUTH_KEY = 'isAuthenticated';
 const ACCOUNT_ID_KEY = 'accountId';
+const ROLE_ID_KEY = 'roleId';
 
 interface TokenPayload {
   exp: number;
-  UserId: number;
+  UserId: string;
+  "http://schemas.microsoft.com/ws/2008/06/identity/claims/role": string;
+  jti: string;
   [key: string]: any;
 }
 
@@ -30,11 +33,20 @@ class AuthService {
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.setItem(AUTH_KEY, 'true');
 
-    // Parse token to get accountId
+    // Parse token to get accountId and roleId
     try {
       const payload = this.parseJwt(token);
+      console.log('Token payload:', payload);
+      
       if (payload.UserId) {
-        localStorage.setItem(ACCOUNT_ID_KEY, payload.UserId.toString());
+        localStorage.setItem(ACCOUNT_ID_KEY, payload.UserId);
+      }
+      if (payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"]) {
+        const roleId = payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+        console.log('Setting RoleId:', roleId);
+        localStorage.setItem(ROLE_ID_KEY, roleId);
+      } else {
+        console.log('No RoleId found in token payload');
       }
     } catch (error) {
       console.error('Error parsing token:', error);
@@ -70,11 +82,24 @@ class AuthService {
     return accountId ? parseInt(accountId) : null;
   }
 
+  public getRoleId(): number | null {
+    const roleId = localStorage.getItem(ROLE_ID_KEY);
+    console.log('Getting RoleId from localStorage:', roleId);
+    return roleId ? parseInt(roleId) : null;
+  }
+
+  public isAdmin(): boolean {
+    const roleId = this.getRoleId();
+    console.log('Checking isAdmin with roleId:', roleId);
+    return roleId === 1;
+  }
+
   public logout(): void {
     this.token = null;
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(AUTH_KEY);
     localStorage.removeItem(ACCOUNT_ID_KEY);
+    localStorage.removeItem(ROLE_ID_KEY);
   }
 
   private parseJwt(token: string): TokenPayload {
@@ -87,7 +112,8 @@ class AuthService {
 
       return JSON.parse(jsonPayload);
     } catch (error) {
-      throw new Error('Invalid token');
+      console.error('Error parsing JWT:', error);
+      throw error;
     }
   }
 }

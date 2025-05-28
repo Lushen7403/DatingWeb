@@ -254,28 +254,26 @@ const AdminPackages = () => {
               )}
             </TableBody>
           </Table>
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center p-4 gap-2">
-              <Button
-                variant="outline"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(currentPage - 1)}
-              >
-                Trước
-              </Button>
-              <span className="mx-4">
-                Trang {currentPage} / {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage(currentPage + 1)}
-              >
-                Sau
-              </Button>
-            </div>
-          )}
+          {/* Pagination (always show) */}
+          <div className="flex justify-center items-center p-4 gap-2">
+            <Button
+              variant="outline"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+            >
+              Trước
+            </Button>
+            <span className="mx-4">
+              Trang {currentPage} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+            >
+              Sau
+            </Button>
+          </div>
         </div>
         {/* Dialog sửa */}
         <Dialog open={isEditOpen} onOpenChange={open => { setIsEditOpen(open); if (!open) setEditPackage(null); }}>

@@ -26,7 +26,7 @@ const Settings = ({ onLogout, onShowLocationPopup }: SettingsProps) => {
           <div className="w-8"></div>
         </div>
       </header>
-      <div className="space-y-4">
+      <div className="flex flex-col gap-3">
         <Button
           variant="outline"
           className="w-full justify-start text-base font-normal h-12"

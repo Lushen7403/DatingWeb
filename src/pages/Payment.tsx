@@ -5,6 +5,8 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Diamond, Tag, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
+import { createPaymentUrl } from '@/lib/paymentApi';
+import { getActiveVouchers, Voucher } from '@/lib/voucherApi';
 
 interface PaymentState {
   packageId: number;
@@ -19,6 +21,8 @@ const Payment = () => {
   const [discountCode, setDiscountCode] = useState('');
   const [discountAmount, setDiscountAmount] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
 
   useEffect(() => {
     if (location.state && location.state.packageData) {
@@ -29,22 +33,29 @@ const Payment = () => {
     }
   }, [location.state, navigate]);
 
+  useEffect(() => {
+    const fetchVouchers = async () => {
+      try {
+        const data = await getActiveVouchers();
+        setVouchers(data);
+      } catch (error) {
+        console.error('Error fetching vouchers:', error);
+        toast.error('Không thể tải danh sách mã giảm giá');
+      }
+    };
+    fetchVouchers();
+  }, []);
+
   const applyDiscount = () => {
     if (!discountCode.trim()) {
       toast.error("Vui lòng nhập mã giảm giá");
       return;
     }
 
-    // Sample discount codes
-    const discountCodes: { [key: string]: number } = {
-      'SAVE10': 0.1,
-      'WELCOME20': 0.2,
-      'FIRST50': 0.5,
-    };
-
-    const code = discountCode.toUpperCase();
-    if (discountCodes[code]) {
-      const discount = paymentData!.price * discountCodes[code];
+    const voucher = vouchers.find(v => v.code.toUpperCase() === discountCode.toUpperCase());
+    if (voucher) {
+      setSelectedVoucher(voucher);
+      const discount = paymentData!.price * (voucher.discountPercent / 100);
       setDiscountAmount(discount);
       toast.success(`Áp dụng mã giảm giá thành công! Giảm ${formatPrice(discount)}`);
     } else {
@@ -58,34 +69,32 @@ const Payment = () => {
     setIsProcessing(true);
     
     try {
-      const finalPrice = paymentData.price - discountAmount;
-      const txnRef = Date.now().toString();
-      const orderInfo = `Nap kim cuong MatchUp - ${paymentData.amount} kim cuong`;
-      const returnUrl = `${window.location.origin}/payment-success`;
-      const ipAddr = "127.0.0.1";
-      const createDate = new Date().toISOString().replace(/[-:]/g, '').split('.')[0];
-      
-      // Tạo URL thanh toán VNPay
-      const vnpayUrl = `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_Amount=${(finalPrice * 100).toString()}&vnp_Command=pay&vnp_CreateDate=${createDate}&vnp_CurrCode=VND&vnp_IpAddr=${ipAddr}&vnp_Locale=vn&vnp_OrderInfo=${encodeURIComponent(orderInfo)}&vnp_OrderType=other&vnp_ReturnUrl=${encodeURIComponent(returnUrl)}&vnp_TmnCode=1CDZYHT2&vnp_TxnRef=${txnRef}&vnp_Version=2.1.0`;
-      
+      const accountId = Number(localStorage.getItem('accountId'));
+      if (!accountId) {
+        toast.error("Vui lòng đăng nhập để thực hiện thanh toán");
+        navigate('/login');
+        return;
+      }
+
+      const response = await createPaymentUrl({
+        accountId,
+        packageId: paymentData.packageId,
+        voucherId: selectedVoucher?.id,
+        amountBefore: paymentData.price,
+        discountAmount: discountAmount
+      });
+
       // Open VNPay in new tab
-      window.open(vnpayUrl, '_blank');
+      window.open(response.paymentUrl, '_blank');
       
-      // Simulate successful payment after 2 seconds
-      setTimeout(() => {
-        setIsProcessing(false);
-        
-        // Update diamonds
-        const currentDiamonds = parseInt(localStorage.getItem('diamonds') || '100');
-        localStorage.setItem('diamonds', (currentDiamonds + paymentData.amount).toString());
-        
-        toast.success(`Thanh toán thành công! Đã nạp ${paymentData.amount} kim cương`);
-        navigate('/diamond-recharge');
-      }, 2000);
+      // Redirect to success page
+      navigate('/payment-success');
       
     } catch (error) {
-      setIsProcessing(false);
+      console.error('Payment error:', error);
       toast.error("Có lỗi xảy ra trong quá trình thanh toán");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -156,9 +165,6 @@ const Payment = () => {
                   Áp dụng
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Thử: SAVE10, WELCOME20, FIRST50
-              </p>
             </div>
 
             {discountAmount > 0 && (

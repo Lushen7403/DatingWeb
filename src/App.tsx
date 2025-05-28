@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { UserX } from "lucide-react";
 import Like from "./pages/Likes";
 import Payment from './pages/Payment';
+import PaymentSuccess from './pages/PaymentSuccess';
 
 // Import admin pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -78,6 +79,7 @@ const App = () => (
           <Route path="/support-feedback" element={<SupportFeedback />} />
           <Route path="/blocked-users" element={<BlockedUsers />} />
           <Route path="/payment" element={<AuthenticatedRoute><Payment /></AuthenticatedRoute>} />
+          <Route path="/payment-success" element={<AuthenticatedRoute><PaymentSuccess /></AuthenticatedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

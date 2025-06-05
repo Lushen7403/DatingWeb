@@ -142,10 +142,104 @@ const Index = () => {
         onClose={() => setShowPreferences(false)}
         onCriteriaChange={handleCriteriaChange}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Larger, more vibrant blobs */}
+          <div className="absolute -top-40 -left-40 w-96 h-96 bg-gradient-to-r from-pink-300 to-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+          <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-gradient-to-r from-purple-300 to-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-blue-300 to-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
+          
+          {/* Additional smaller blobs */}
+          <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-gradient-to-r from-pink-200 to-purple-200 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob animation-delay-1000"></div>
+          <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-purple-200 to-blue-200 rounded-full mix-blend-multiply filter blur-2xl opacity-50 animate-blob animation-delay-3000"></div>
+        </div>
+
+        {/* Enhanced floating hearts with multiple colors */}
+        <div className="floating-hearts">
+          {[...Array(20)].map((_, i) => {
+            // Define different color combinations
+            const colors = [
+              'from-pink-400 to-purple-400',
+              'from-purple-400 to-blue-400',
+              'from-blue-400 to-pink-400',
+              'from-red-400 to-pink-400',
+              'from-pink-400 to-rose-400',
+              'from-rose-400 to-purple-400'
+            ];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            return (
+              <div
+                key={i}
+                className={`heart bg-gradient-to-r ${randomColor}`}
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 5}s`,
+                  animationDuration: `${5 + Math.random() * 5}s`,
+                  transform: `scale(${Math.random() * 0.5 + 0.5}) rotate(${Math.random() * 360}deg)`,
+                  filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))',
+                  opacity: Math.random() * 0.3 + 0.4
+                }}
+              />
+            );
+          })}
+        </div>
+
+        {/* Additional floating mini hearts */}
+        <div className="floating-hearts">
+          {[...Array(15)].map((_, i) => {
+            const colors = [
+              'from-pink-300 to-purple-300',
+              'from-purple-300 to-blue-300',
+              'from-blue-300 to-pink-300'
+            ];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            return (
+              <div
+                key={`mini-${i}`}
+                className={`heart bg-gradient-to-r ${randomColor}`}
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  animationDelay: `${Math.random() * 5}s`,
+                  animationDuration: `${4 + Math.random() * 4}s`,
+                  transform: `scale(${Math.random() * 0.3 + 0.2}) rotate(${Math.random() * 360}deg)`,
+                  filter: 'drop-shadow(0 0 6px rgba(255, 255, 255, 0.4))',
+                  opacity: Math.random() * 0.2 + 0.3
+                }}
+              />
+            );
+          })}
+        </div>
+
+        {/* Enhanced sparkles */}
+        <div className="absolute inset-0 pointer-events-none">
+          {[...Array(30)].map((_, i) => (
+            <div
+              key={i}
+              className="sparkle"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                transform: `scale(${Math.random() * 0.5 + 0.5})`
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Enhanced gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-blue-500/10 mix-blend-overlay" />
+
+        {/* Shimmer effect overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+
         <Header />
-        <div className="pt-20 pb-20 px-4">
-          <div className="swipe-card-container">
+        <div className="pt-20 pb-20 px-4 relative z-10">
+          <div className="swipe-card-container shimmer">
             {profiles.map((profile, index) => {
               if (!profile || !profile.id || !profile.fullName) {
                 console.warn('Invalid profile data:', profile);

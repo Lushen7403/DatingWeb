@@ -72,49 +72,66 @@ const UserProfile = ({ user, editable = false }: UserProfileProps) => {
       <div className="container px-4 pt-4">
         <div className="flex flex-col items-center">
           {/* Ảnh đại diện */}
-            <div className="w-32 h-32 rounded-full overflow-hidden mb-4">
-              <img 
+          <div className="w-32 h-32 rounded-full overflow-hidden mb-4 relative group transition-transform duration-300 hover:scale-105 hover:shadow-lg">
+            <img 
               src={user.avatar || '/default-avatar.png'} 
-                alt={user.name} 
-                className="w-full h-full object-cover"
+              alt={user.name} 
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               onError={(e) => {
-                console.log('Avatar load error:', e); // Debug
+                console.log('Avatar load error:', e);
                 (e.target as HTMLImageElement).src = '/default-avatar.png';
               }}
-              />
-            </div>
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </div>
 
-          <h1 className="text-2xl font-bold">{user.name}</h1>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">{user.name}</h1>
           <div className="flex items-center text-sm text-muted-foreground mt-1">
             <Calendar size={14} className="mr-1" /> 
             {formatBirthdate(user.birthdate)} · {getZodiacSign(user.birthdate)}
           </div>
-          <div className="bg-matchup-purple-light text-matchup-purple-dark px-3 py-1 rounded-full text-xs font-medium mt-2">
+          <div className="bg-matchup-purple-light text-matchup-purple-dark px-3 py-1 rounded-full text-xs font-medium mt-2 hover:bg-matchup-purple hover:text-white transition-colors duration-300 cursor-default">
             {user.gender}
           </div>
 
-          <p className="text-center mt-4 text-foreground/80 max-w-md">
+          <p className="text-center mt-4 text-foreground/80 max-w-md leading-relaxed">
             {user.bio}
           </p>
+
+          {/* Sở thích */}
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold mb-3 text-center bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">Sở thích</h2>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {['Chơi game', 'Đọc sách', 'Du lịch', 'Âm nhạc', 'Nấu ăn'].map((interest, index) => (
+                <span 
+                  key={index}
+                  className="bg-matchup-purple-light text-matchup-purple-dark px-4 py-1.5 rounded-full text-sm font-medium hover:bg-matchup-purple hover:text-white transform hover:scale-105 transition-all duration-300 cursor-default shadow-sm hover:shadow-md"
+                >
+                  {interest}
+                </span>
+              ))}
+            </div>
+          </div>
 
           {/* Ảnh phụ */}
           {user.photos && user.photos.length > 0 && (
             <div className="mt-8 w-full">
-              <h2 className="text-lg font-semibold mb-4">Ảnh của tôi</h2>
-              <div className="grid grid-cols-3 gap-2">
+              <h2 className="text-lg font-semibold mb-4 text-center bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">Ảnh bổ sung</h2>
+              <div className="grid grid-cols-3 gap-3">
                 {user.photos.map((photo, idx) => (
-                <div key={idx} className="aspect-square rounded-lg overflow-hidden">
-                  <img 
-                    src={photo} 
+                  <div key={idx} className="aspect-square rounded-lg overflow-hidden group relative">
+                    <img 
+                      src={photo} 
                       alt={`${user.name} photo ${idx + 1}`} 
-                    className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                       onError={(e) => {
-                        console.log('Photo load error:', e); // Debug
+                        console.log('Photo load error:', e);
                         (e.target as HTMLImageElement).src = '/default-avatar.png';
                       }}
-                  />
-                </div>
-              ))}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
+                ))}
               </div>
             </div>
           )}

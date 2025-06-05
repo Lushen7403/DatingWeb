@@ -136,12 +136,29 @@ const EditProfile = ({ user, onSave }: EditProfileProps) => {
             className="text-center mt-4 text-foreground/80 max-w-md cursor-pointer group p-2 rounded-lg hover:bg-matchup-purple-light/50 transition-colors"
             onClick={() => handleEditField('bio')}
           >
-            <p>{editedUser.bio}</p>
+            <p className="leading-relaxed">{editedUser.bio}</p>
           </div>
 
+          {/* Sở thích */}
+          <div className="mt-6">
+            <h2 className="text-lg font-semibold mb-3 text-center bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">Sở thích</h2>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {['Chơi game', 'Đọc sách', 'Du lịch', 'Âm nhạc', 'Nấu ăn'].map((interest, index) => (
+                <span 
+                  key={index}
+                  className="bg-matchup-purple-light text-matchup-purple-dark px-4 py-1.5 rounded-full text-sm font-medium hover:bg-matchup-purple hover:text-white transform hover:scale-105 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
+                  onClick={() => handleEditField('interests')}
+                >
+                  {interest}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Ảnh bổ sung */}
           <div className="mt-8 w-full">
-            <h2 className="text-lg font-semibold mb-4">Ảnh của tôi</h2>
-            <div className="grid grid-cols-3 gap-2">
+            <h2 className="text-lg font-semibold mb-4 text-center bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">Ảnh bổ sung</h2>
+            <div className="grid grid-cols-3 gap-3">
               {Array(6).fill(0).map((_, index) => (
                 <div key={index} className="aspect-square rounded-lg overflow-hidden relative group">
                   {(editedUser.photos && editedUser.photos[index]) ? (
@@ -149,10 +166,10 @@ const EditProfile = ({ user, onSave }: EditProfileProps) => {
                       <img 
                         src={editedUser.photos[index]} 
                         alt={`${editedUser.name} photo ${index + 1}`} 
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                       />
                       <div 
-                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                        className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center cursor-pointer"
                         onClick={() => handleEditField(`photo-${index}`)}
                       >
                         <Upload size={24} className="text-white" />
@@ -160,10 +177,10 @@ const EditProfile = ({ user, onSave }: EditProfileProps) => {
                     </>
                   ) : (
                     <label 
-                      className="w-full h-full flex items-center justify-center bg-muted cursor-pointer"
+                      className="w-full h-full flex items-center justify-center bg-muted cursor-pointer hover:bg-matchup-purple-light/50 transition-colors"
                       htmlFor={`photo-input-${index}`}
                     >
-                      <Upload size={24} className="text-muted-foreground/50" />
+                      <Upload size={24} className="text-muted-foreground/50 group-hover:text-matchup-purple transition-colors" />
                       <input 
                         type="file"
                         id={`photo-input-${index}`}
@@ -184,17 +201,17 @@ const EditProfile = ({ user, onSave }: EditProfileProps) => {
       <Dialog open={currentField === 'avatar'} onOpenChange={handleDialogClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Thay đổi ảnh đại diện</DialogTitle>
+            <DialogTitle className="bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">Thay đổi ảnh đại diện</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center justify-center space-y-4">
-            <div className="w-32 h-32 rounded-full overflow-hidden">
+            <div className="w-32 h-32 rounded-full overflow-hidden group">
               <img 
                 src={editedUser.avatar || 'https://via.placeholder.com/300?text=Avatar'} 
                 alt="Avatar" 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               />
             </div>
-            <label className="cursor-pointer bg-matchup-purple text-white px-4 py-2 rounded-full">
+            <label className="cursor-pointer bg-matchup-purple text-white px-4 py-2 rounded-full hover:bg-matchup-purple-dark transition-colors">
               Chọn ảnh mới
               <input 
                 type="file"
@@ -210,16 +227,17 @@ const EditProfile = ({ user, onSave }: EditProfileProps) => {
       <Dialog open={currentField === 'name'} onOpenChange={handleDialogClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Thay đổi tên</DialogTitle>
+            <DialogTitle className="bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">Thay đổi tên</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input 
               value={editedUser.name}
               onChange={(e) => setEditedUser({...editedUser, name: e.target.value})}
               placeholder="Nhập tên của bạn"
+              className="focus:ring-matchup-purple"
             />
             <Button 
-              className="w-full bg-matchup-purple hover:bg-matchup-purple-dark"
+              className="w-full bg-matchup-purple hover:bg-matchup-purple-dark transition-colors"
               onClick={handleDialogClose}
             >
               Lưu
@@ -231,16 +249,17 @@ const EditProfile = ({ user, onSave }: EditProfileProps) => {
       <Dialog open={currentField === 'birthdate'} onOpenChange={handleDialogClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Thay đổi ngày sinh</DialogTitle>
+            <DialogTitle className="bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">Thay đổi ngày sinh</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input 
               type="date"
               value={new Date(editedUser.birthdate).toISOString().split('T')[0]}
               onChange={(e) => setEditedUser({...editedUser, birthdate: e.target.value})}
+              className="focus:ring-matchup-purple"
             />
             <Button 
-              className="w-full bg-matchup-purple hover:bg-matchup-purple-dark"
+              className="w-full bg-matchup-purple hover:bg-matchup-purple-dark transition-colors"
               onClick={handleDialogClose}
             >
               Lưu
@@ -252,7 +271,7 @@ const EditProfile = ({ user, onSave }: EditProfileProps) => {
       <Dialog open={currentField === 'gender'} onOpenChange={handleDialogClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Thay đổi giới tính</DialogTitle>
+            <DialogTitle className="bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">Thay đổi giới tính</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="flex flex-col space-y-2">
@@ -260,7 +279,7 @@ const EditProfile = ({ user, onSave }: EditProfileProps) => {
                 <Button 
                   key={gender}
                   variant={editedUser.gender === gender ? "default" : "outline"}
-                  className={editedUser.gender === gender ? "bg-matchup-purple hover:bg-matchup-purple-dark" : ""}
+                  className={editedUser.gender === gender ? "bg-matchup-purple hover:bg-matchup-purple-dark" : "hover:bg-matchup-purple-light"}
                   onClick={() => setEditedUser({...editedUser, gender})}
                 >
                   {gender}
@@ -268,7 +287,7 @@ const EditProfile = ({ user, onSave }: EditProfileProps) => {
               ))}
             </div>
             <Button 
-              className="w-full bg-matchup-purple hover:bg-matchup-purple-dark"
+              className="w-full bg-matchup-purple hover:bg-matchup-purple-dark transition-colors"
               onClick={handleDialogClose}
             >
               Lưu
@@ -280,7 +299,7 @@ const EditProfile = ({ user, onSave }: EditProfileProps) => {
       <Dialog open={currentField === 'bio'} onOpenChange={handleDialogClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Thay đổi tiểu sử</DialogTitle>
+            <DialogTitle className="bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">Thay đổi tiểu sử</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Textarea 
@@ -288,9 +307,38 @@ const EditProfile = ({ user, onSave }: EditProfileProps) => {
               onChange={(e) => setEditedUser({...editedUser, bio: e.target.value})}
               placeholder="Viết gì đó về bản thân..."
               rows={5}
+              className="focus:ring-matchup-purple"
             />
             <Button 
-              className="w-full bg-matchup-purple hover:bg-matchup-purple-dark"
+              className="w-full bg-matchup-purple hover:bg-matchup-purple-dark transition-colors"
+              onClick={handleDialogClose}
+            >
+              Lưu
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog cho sở thích */}
+      <Dialog open={currentField === 'interests'} onOpenChange={handleDialogClose}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">Chỉnh sửa sở thích</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {['Chơi game', 'Đọc sách', 'Du lịch', 'Âm nhạc', 'Nấu ăn', 'Xem phim', 'Thể thao', 'Nhiếp ảnh', 'Vẽ', 'Âm nhạc'].map((interest) => (
+                <Button
+                  key={interest}
+                  variant="outline"
+                  className="hover:bg-matchup-purple hover:text-white transition-colors"
+                >
+                  {interest}
+                </Button>
+              ))}
+            </div>
+            <Button 
+              className="w-full bg-matchup-purple hover:bg-matchup-purple-dark transition-colors"
               onClick={handleDialogClose}
             >
               Lưu

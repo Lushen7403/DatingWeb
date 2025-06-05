@@ -64,84 +64,111 @@ const Register = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center text-primary">MatchUp</CardTitle>
-          <CardDescription className="text-center">Tạo tài khoản mới</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  type="text"
-                  placeholder="Tên đăng nhập"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="matchup-input pl-10"
-                  required
-                />
+    <div className="auth-container">
+      {/* Animated background */}
+      <div className="auth-background">
+        <div className="auth-blob auth-blob-1"></div>
+        <div className="auth-blob auth-blob-2"></div>
+        <div className="auth-blob auth-blob-3"></div>
+        
+        {/* Floating hearts */}
+        <div className="floating-hearts">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="heart"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 5}s`,
+                transform: `scale(${Math.random() * 0.5 + 0.5})`
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <Card className="auth-card w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-matchup-purple to-matchup-pink">
+              MatchLove
+            </CardTitle>
+            <CardDescription className="text-center">Tạo tài khoản mới</CardDescription>
+          </CardHeader>
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="relative auth-input">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    type="text"
+                    placeholder="Tên đăng nhập"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="matchup-input pl-10"
-                  required
-                />
+              <div className="space-y-2">
+                <div className="relative auth-input">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  type="password"
-                  placeholder="Mật khẩu"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="matchup-input pl-10"
-                  required
-                />
+              <div className="space-y-2">
+                <div className="relative auth-input">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    type="password"
+                    placeholder="Mật khẩu"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  type="password"
-                  placeholder="Xác nhận mật khẩu"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="matchup-input pl-10"
-                  required
-                />
+              <div className="space-y-2">
+                <div className="relative auth-input">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    type="password"
+                    placeholder="Xác nhận mật khẩu"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
               </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-3">
-            <Button 
-              type="submit" 
-              className="w-full bg-primary hover:bg-primary/90" 
-              disabled={isLoading}
-            >
-              {isLoading ? "Đang đăng ký..." : "Đăng ký"}
-            </Button>
-            <div className="text-center text-sm">
-              Đã có tài khoản?{" "}
-              <Link to="/login" className="text-primary hover:underline">
-                Đăng nhập
-              </Link>
-            </div>
-          </CardFooter>
-        </form>
-      </Card>
+            </CardContent>
+            <CardFooter className="flex flex-col space-y-3">
+              <Button 
+                type="submit" 
+                className="auth-button w-full text-white" 
+                disabled={isLoading}
+              >
+                {isLoading ? "Đang đăng ký..." : "Đăng ký"}
+              </Button>
+              <div className="text-center text-sm">
+                Đã có tài khoản?{" "}
+                <Link to="/login" className="auth-link">
+                  Đăng nhập
+                </Link>
+              </div>
+            </CardFooter>
+          </form>
+        </Card>
+      </div>
     </div>
   );
 };

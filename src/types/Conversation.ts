@@ -1,4 +1,3 @@
-
 import { Message } from './Message';
 
 export interface Conversation {
@@ -9,4 +8,5 @@ export interface Conversation {
   isOnline: boolean;
   lastMessage: string;
   lastMessageAt?: string;
+  unreadCount: number;
 }

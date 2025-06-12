@@ -169,4 +169,28 @@ export async function getDistance(accountId: number, profileId: number): Promise
   if (!res.ok) throw new Error('Không thể lấy khoảng cách');
   const data = await res.json();
   return data.distanceKm;
-} 
+}
+
+export interface Hobby {
+  id: number;
+  hobbyName: string;
+  userHobbies: any;
+}
+
+export const getAllHobbies = async (): Promise<Hobby[]> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No token found');
+    }
+
+    const response = await axios.get(`${API_URL_LOCAL}/hobbies`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    throw error;
+  }
+}; 

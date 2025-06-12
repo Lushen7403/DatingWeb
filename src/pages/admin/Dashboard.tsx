@@ -2,18 +2,36 @@ import { useEffect, useState } from 'react';
 import AdminSidebar from '@/components/AdminSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { getDashboardData } from '@/lib/adminDashApi';
+import { getDashboardData, getWeeklyDashboardData, getMonthlyDashboardData, DashboardData } from '@/lib/adminDashApi';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+type TimePeriod = 'daily' | 'weekly' | 'monthly';
 
 const AdminDashboard = () => {
-  const [dashboard, setDashboard] = useState<any>(null);
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('daily');
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await getDashboardData();
-      setDashboard(data);
+      try {
+        let response;
+        switch (timePeriod) {
+          case 'weekly':
+            response = await getWeeklyDashboardData();
+            break;
+          case 'monthly':
+            response = await getMonthlyDashboardData();
+            break;
+          default:
+            response = await getDashboardData();
+        }
+        setDashboard(response);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      }
     };
     fetchData();
-  }, []);
+  }, [timePeriod]);
 
   if (!dashboard) return <div className="flex min-h-screen bg-gray-50"><AdminSidebar /><div className="flex-1 ml-64 p-6 flex items-center justify-center">Đang tải...</div></div>;
 
@@ -32,7 +50,7 @@ const AdminDashboard = () => {
   }));
 
   const totalUsers = dashboard.totalUsers;
-  const totalPayment = dashboard.totalPayments7d;
+  const totalPayment = dashboard.totalPayments;
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
@@ -44,12 +62,28 @@ const AdminDashboard = () => {
       <div className="flex-1 ml-64 p-6 bg-gray-50 min-h-screen">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-3xl font-bold">Tổng quan</h1>
-          {/* Filter buttons: chỉ giao diện */}
-          <div className="flex gap-2">
-            <button className="px-4 py-2 rounded-full bg-white shadow border border-gray-200 text-gray-700 font-medium hover:bg-purple-100 hover:text-purple-700 transition">Ngày</button>
-            <button className="px-4 py-2 rounded-full bg-white shadow border border-gray-200 text-gray-700 font-medium hover:bg-pink-100 hover:text-pink-700 transition">Tuần</button>
-            <button className="px-4 py-2 rounded-full bg-white shadow border border-gray-200 text-gray-700 font-medium hover:bg-blue-100 hover:text-blue-700 transition">Tháng</button>
-          </div>
+          <Tabs value={timePeriod} onValueChange={(value) => setTimePeriod(value as TimePeriod)} className="w-[400px]">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger 
+                value="daily"
+                className={timePeriod === 'daily' ? 'bg-primary text-primary-foreground' : ''}
+              >
+                Theo ngày
+              </TabsTrigger>
+              <TabsTrigger 
+                value="weekly"
+                className={timePeriod === 'weekly' ? 'bg-primary text-primary-foreground' : ''}
+              >
+                Theo tuần
+              </TabsTrigger>
+              <TabsTrigger 
+                value="monthly"
+                className={timePeriod === 'monthly' ? 'bg-primary text-primary-foreground' : ''}
+              >
+                Theo tháng
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -64,7 +98,7 @@ const AdminDashboard = () => {
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Tổng thanh toán (7 ngày)</CardTitle>
+              <CardTitle className="text-sm font-medium">Tổng thanh toán</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(totalPayment)}</div>
@@ -75,7 +109,7 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           <Card>
             <CardHeader>
-              <CardTitle>Đăng ký mới (7 ngày gần nhất)</CardTitle>
+              <CardTitle>Đăng ký mới</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -92,7 +126,7 @@ const AdminDashboard = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>Cặp đôi match thành công (7 ngày gần nhất)</CardTitle>
+              <CardTitle>Cặp đôi match thành công</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -110,7 +144,7 @@ const AdminDashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Doanh thu thanh toán (7 ngày gần nhất)</CardTitle>
+            <CardTitle>Doanh thu thanh toán</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>

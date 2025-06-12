@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { User, MapPin, FileText, MessageSquareText, LogOut, Info, Lock, Diamond, ArrowLeft, UserX } from 'lucide-react';
+import { User, MapPin, FileText, MessageSquareText, LogOut, Info, Lock, Diamond, ArrowLeft, UserX, Heart } from 'lucide-react';
 import UpdateLocationPopup from '@/components/UpdateLocationPopup';
 import { useState } from 'react';
 
@@ -114,6 +114,13 @@ const Settings = ({ onLogout, onShowLocationPopup }: SettingsProps) => {
               <Button variant="outline" className="w-full justify-start text-base font-normal h-12 hover:scale-105 transition-transform backdrop-blur-sm bg-white/80">
                 <UserX className="mr-2 h-5 w-5 text-matchup-pink" />
                 Danh sách đã chặn
+              </Button>
+            </Link>
+
+            <Link to="/swiped" className="w-full block">
+              <Button variant="outline" className="w-full justify-start text-base font-normal h-12 hover:scale-105 transition-transform backdrop-blur-sm bg-white/80">
+                <Heart className="mr-2 h-5 w-5 text-matchup-pink" />
+                Người bạn đã thích
               </Button>
             </Link>
             

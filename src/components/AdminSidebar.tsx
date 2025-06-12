@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { BarChart3, Users, AlertTriangle, Bell, Percent, Package, Receipt, Menu, X } from 'lucide-react';
+import { BarChart3, Users, AlertTriangle, Bell, Percent, Package, Receipt, Menu, X, MessageSquareWarning } from 'lucide-react';
 import { useState } from 'react';
 
 const AdminSidebar = () => {
@@ -11,6 +11,7 @@ const AdminSidebar = () => {
     { path: '/admin', label: 'Tổng quan', icon: BarChart3 },
     { path: '/admin/accounts', label: 'Quản lý tài khoản', icon: Users },
     { path: '/admin/reports', label: 'Quản lý vi phạm báo cáo', icon: AlertTriangle },
+    { path: '/admin/toxic-messages', label: 'Quản lý tin nhắn độc hại', icon: MessageSquareWarning },
     { path: '/admin/notifications', label: 'Quản lý thông báo', icon: Bell },
     { path: '/admin/discount-codes', label: 'Quản lý mã giảm giá', icon: Percent },
     { path: '/admin/packages', label: 'Quản lý các gói nạp', icon: Package },

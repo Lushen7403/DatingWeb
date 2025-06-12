@@ -1,7 +1,27 @@
 import axios from 'axios';
-const API_URL = 'http://localhost:5291/api/AdminDash';
 
-export const getDashboardData = async () => {
-  const res = await axios.get(API_URL);
+export interface DashboardData {
+  totalUsers: number;
+  totalPayments: number;
+  chart: {
+    labels: string[];
+    newRegistrations: number[];
+    matchedCounts: number[];
+    revenues: number[];
+  };
+}
+
+export const getDashboardData = async (): Promise<DashboardData> => {
+  const res = await axios.get('http://localhost:5291/api/AdminDash/daily');
+  return res.data;
+};
+
+export const getWeeklyDashboardData = async (): Promise<DashboardData> => {
+  const res = await axios.get('http://localhost:5291/api/AdminDash/weekly');
+  return res.data;
+};
+
+export const getMonthlyDashboardData = async (): Promise<DashboardData> => {
+  const res = await axios.get('http://localhost:5291/api/AdminDash/monthly');
   return res.data;
 }; 

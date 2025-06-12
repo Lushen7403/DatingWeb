@@ -30,3 +30,7 @@ export const logout = (token: string) =>
   axios.post(`${API_URL}/Logout`, {}, {
     headers: { Authorization: `Bearer ${token}` }
   });
+
+export const googleLogin = async (idToken: string) => {
+  return axios.post(`${API_URL}/google-login`, { idToken });
+};

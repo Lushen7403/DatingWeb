@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { createProfile } from '@/lib/profileApi';
+import { createProfile, getAllHobbies, Hobby } from '@/lib/profileApi';
 import LocationUpdatePopup from '@/components/LocationUpdatePopup';
 
 const CreateProfile = () => {
@@ -23,6 +23,26 @@ const CreateProfile = () => {
     avatar: null as File | null,
     profileImages: [] as File[]
   });
+  const [hobbies, setHobbies] = useState<Hobby[]>([]);
+  const [selectedHobbies, setSelectedHobbies] = useState<number[]>([]);
+
+  useEffect(() => {
+    const fetchHobbies = async () => {
+      try {
+        const hobbiesData = await getAllHobbies();
+        setHobbies(hobbiesData);
+      } catch (error) {
+        // silent
+      }
+    };
+    fetchHobbies();
+  }, []);
+
+  const toggleHobby = (hobbyId: number) => {
+    setSelectedHobbies(prev =>
+      prev.includes(hobbyId) ? prev.filter(id => id !== hobbyId) : [...prev, hobbyId]
+    );
+  };
 
   const handleSave = async () => {
     // Validate required fields
@@ -64,6 +84,10 @@ const CreateProfile = () => {
           submitData.append('ProfileImages', file);
         });
       }
+
+      selectedHobbies.forEach(hobbyId => {
+        submitData.append('HobbyIds', hobbyId.toString());
+      });
 
       await createProfile(submitData);
       toast.success('Hồ sơ đã được tạo thành công!');
@@ -231,6 +255,31 @@ const CreateProfile = () => {
                 />
               </div>
 
+              {/* Sở thích */}
+              <h2 className="text-lg font-semibold mb-3 bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent text-center">
+                Sở thích
+              </h2>
+              <div className="w-full flex flex-col items-center border border-matchup-purple-light rounded-xl p-4 mb-6">
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {hobbies.length > 0 ? (
+                    hobbies.map((hobby) => (
+                      <button
+                        type="button"
+                        key={hobby.id}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${selectedHobbies.includes(hobby.id)
+                          ? 'bg-matchup-purple-light text-matchup-purple-dark border-matchup-purple'
+                          : 'bg-white text-gray-600 border-gray-300 hover:bg-matchup-purple-light/50'}`}
+                        onClick={() => toggleHobby(hobby.id)}
+                      >
+                        {hobby.hobbyName}
+                      </button>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-sm">Chưa có sở thích nào</p>
+                  )}
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label>Ảnh phụ (tối đa 6 ảnh)</Label>
                 <div className="grid grid-cols-3 gap-2">
@@ -261,6 +310,8 @@ const CreateProfile = () => {
                   ))}
                 </div>
               </div>
+
+              
             </div>
           </div>
         </div>

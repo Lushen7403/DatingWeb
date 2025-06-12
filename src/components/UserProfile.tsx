@@ -2,6 +2,8 @@ import { User } from '@/types/User';
 import { ArrowLeft, Calendar, Pencil } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import { getAllHobbies, Hobby } from '@/lib/profileApi';
 
 interface UserProfileProps {
   user: User;
@@ -44,6 +46,22 @@ const UserProfile = ({ user, editable = false }: UserProfileProps) => {
   // Hiển thị ảnh
   const mainPhoto = user.avatar;
   const subPhotos = user.photos || [];
+
+  const [hobbies, setHobbies] = useState<Hobby[]>([]);
+  useEffect(() => {
+    const fetchHobbies = async () => {
+      try {
+        const hobbiesData = await getAllHobbies();
+        setHobbies(hobbiesData);
+        console.log('Fetched hobbies:', hobbiesData);
+      } catch (error) {
+        // silent
+      }
+    };
+    fetchHobbies();
+  }, []);
+
+  console.log('user.hobbyIds in UserProfile:', user);
 
   return (
     <div className="bg-background min-h-screen pt-16 pb-20">
@@ -99,17 +117,24 @@ const UserProfile = ({ user, editable = false }: UserProfileProps) => {
           </p>
 
           {/* Sở thích */}
-          <div className="mt-6">
-            <h2 className="text-lg font-semibold mb-3 text-center bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">Sở thích</h2>
+          <div className="mt-6 w-full flex flex-col items-center">
+            <h2 className="text-lg font-semibold mb-3 bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">Sở thích</h2>
             <div className="flex flex-wrap gap-2 justify-center">
-              {['Chơi game', 'Đọc sách', 'Du lịch', 'Âm nhạc', 'Nấu ăn'].map((interest, index) => (
-                <span 
-                  key={index}
-                  className="bg-matchup-purple-light text-matchup-purple-dark px-4 py-1.5 rounded-full text-sm font-medium hover:bg-matchup-purple hover:text-white transform hover:scale-105 transition-all duration-300 cursor-default shadow-sm hover:shadow-md"
-                >
-                  {interest}
-                </span>
-              ))}
+              {user.hobbyIds && user.hobbyIds.length > 0 ? (
+                user.hobbyIds.map((hobbyId) => {
+                  const hobby = hobbies.find(h => h.id === Number(hobbyId));
+                  return hobby ? (
+                    <span
+                      key={hobby.id}
+                      className="bg-matchup-purple-light text-matchup-purple-dark px-4 py-1.5 rounded-full text-sm font-medium"
+                    >
+                      {hobby.hobbyName}
+                    </span>
+                  ) : null;
+                })
+              ) : (
+                <p className="text-muted-foreground text-sm">Chưa có sở thích nào</p>
+              )}
             </div>
           </div>
 

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User } from '@/types/User';
-import { ArrowLeft, Check, X, Upload } from 'lucide-react';
+import { ArrowLeft, Check, X, Upload, Pencil } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,14 @@ import {
   DialogTitle,
   DialogClose
 } from '@/components/ui/dialog';
+import { getAllHobbies } from '@/lib/profileApi';
+import { Badge } from '@/components/ui/badge';
+
+interface Hobby {
+  id: number;
+  hobbyName: string;
+  userHobbies: any;
+}
 
 interface EditProfileProps {
   user: User;
@@ -22,10 +30,31 @@ interface EditProfileProps {
 const EditProfile = ({ user, onSave }: EditProfileProps) => {
   const [editedUser, setEditedUser] = useState<User>({...user});
   const [currentField, setCurrentField] = useState<string | null>(null);
+  const [hobbies, setHobbies] = useState<Hobby[]>([]);
+  const [selectedHobbies, setSelectedHobbies] = useState<number[]>(user.hobbyIds || []);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const fetchHobbies = async () => {
+      try {
+        const hobbiesData = await getAllHobbies();
+        setHobbies(hobbiesData);
+      } catch (error) {
+        toast.error('Không thể tải danh sách sở thích');
+      }
+    };
+    fetchHobbies();
+  }, []);
+
+  useEffect(() => {
+    setSelectedHobbies(user.hobbyIds || []);
+  }, [user]);
+
   const handleSave = () => {
-    onSave(editedUser);
+    onSave({
+      ...editedUser,
+      hobbyIds: selectedHobbies
+    });
   };
 
   const handleCancel = () => {
@@ -72,6 +101,16 @@ const EditProfile = ({ user, onSave }: EditProfileProps) => {
     }
   };
 
+  const toggleHobby = (hobbyId: number) => {
+    setSelectedHobbies(prev => {
+      if (prev.includes(hobbyId)) {
+        return prev.filter(id => id !== hobbyId);
+      } else {
+        return [...prev, hobbyId];
+      }
+    });
+  };
+
   return (
     <div className="bg-background min-h-screen pt-16 pb-20">
       <header className="matchup-header">
@@ -105,53 +144,76 @@ const EditProfile = ({ user, onSave }: EditProfileProps) => {
           </div>
 
           <div 
-            className="cursor-pointer group"
+            className="cursor-pointer group relative"
             onClick={() => handleEditField('name')}
           >
             <h1 className="text-2xl font-bold group-hover:text-matchup-purple transition-colors">
               {editedUser.name || 'Thêm tên của bạn'}
             </h1>
             <div className="h-0.5 w-0 group-hover:w-full bg-matchup-purple transition-all duration-300"></div>
+            <Button variant="ghost" size="icon" className="absolute -right-8 top-0">
+              <Pencil size={16} />
+            </Button>
           </div>
 
           <div 
-            className="text-sm text-muted-foreground mt-2 cursor-pointer group"
+            className="text-sm text-muted-foreground mt-2 cursor-pointer group relative"
             onClick={() => handleEditField('birthdate')}
           >
             <span className="group-hover:text-matchup-purple transition-colors">
               {new Date(editedUser.birthdate).toLocaleDateString('vi-VN')}
             </span>
+            <Button variant="ghost" size="icon" className="absolute -right-8 top-0">
+              <Pencil size={16} />
+            </Button>
           </div>
           
           <div 
-            className="bg-matchup-purple-light text-matchup-purple-dark px-3 py-1 rounded-full text-xs font-medium mt-2 cursor-pointer group"
+            className="bg-matchup-purple-light text-matchup-purple-dark px-3 py-1 rounded-full text-xs font-medium mt-2 cursor-pointer group relative"
             onClick={() => handleEditField('gender')}
           >
             <span className="group-hover:text-matchup-purple-dark transition-colors">
               {editedUser.gender}
             </span>
+            <Button variant="ghost" size="icon" className="absolute -right-8 top-0">
+              <Pencil size={16} />
+            </Button>
           </div>
 
           <div 
-            className="text-center mt-4 text-foreground/80 max-w-md cursor-pointer group p-2 rounded-lg hover:bg-matchup-purple-light/50 transition-colors"
+            className="text-center mt-4 text-foreground/80 max-w-md cursor-pointer group p-2 rounded-lg hover:bg-matchup-purple-light/50 transition-colors relative"
             onClick={() => handleEditField('bio')}
           >
             <p className="leading-relaxed">{editedUser.bio}</p>
+            <Button variant="ghost" size="icon" className="absolute -right-8 top-0">
+              <Pencil size={16} />
+            </Button>
           </div>
 
           {/* Sở thích */}
-          <div className="mt-6">
-            <h2 className="text-lg font-semibold mb-3 text-center bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">Sở thích</h2>
+          <div className="mt-6 w-full flex flex-col items-center">
+            <div className="flex items-center gap-2 mb-3 justify-center">
+              <h2 className="text-lg font-semibold bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">Sở thích</h2>
+              <Button variant="ghost" size="icon" onClick={() => handleEditField('hobbies')} className="p-1">
+                <Pencil size={16} />
+              </Button>
+            </div>
             <div className="flex flex-wrap gap-2 justify-center">
-              {['Chơi game', 'Đọc sách', 'Du lịch', 'Âm nhạc', 'Nấu ăn'].map((interest, index) => (
-                <span 
-                  key={index}
-                  className="bg-matchup-purple-light text-matchup-purple-dark px-4 py-1.5 rounded-full text-sm font-medium hover:bg-matchup-purple hover:text-white transform hover:scale-105 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md"
-                  onClick={() => handleEditField('interests')}
-                >
-                  {interest}
-                </span>
-              ))}
+              {selectedHobbies.length > 0 ? (
+                selectedHobbies.map((hobbyId) => {
+                  const hobby = hobbies.find(h => h.id === hobbyId);
+                  return hobby ? (
+                    <span 
+                      key={hobby.id}
+                      className="bg-matchup-purple-light text-matchup-purple-dark px-4 py-1.5 rounded-full text-sm font-medium"
+                    >
+                      {hobby.hobbyName}
+                    </span>
+                  ) : null;
+                })
+              ) : (
+                <p className="text-muted-foreground text-sm">Chưa có sở thích nào</p>
+              )}
             </div>
           </div>
 
@@ -320,20 +382,22 @@ const EditProfile = ({ user, onSave }: EditProfileProps) => {
       </Dialog>
 
       {/* Dialog cho sở thích */}
-      <Dialog open={currentField === 'interests'} onOpenChange={handleDialogClose}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog open={currentField === 'hobbies'} onOpenChange={handleDialogClose}>
+        <DialogContent className="sm:max-w-md" aria-describedby="desc-hobbies">
           <DialogHeader>
             <DialogTitle className="bg-gradient-to-r from-matchup-purple to-matchup-purple-dark bg-clip-text text-transparent">Chỉnh sửa sở thích</DialogTitle>
           </DialogHeader>
+          <p className="sr-only" id="desc-hobbies">Chọn sở thích của bạn</p>
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2">
-              {['Chơi game', 'Đọc sách', 'Du lịch', 'Âm nhạc', 'Nấu ăn', 'Xem phim', 'Thể thao', 'Nhiếp ảnh', 'Vẽ', 'Âm nhạc'].map((interest) => (
+              {hobbies.map((hobby) => (
                 <Button
-                  key={interest}
-                  variant="outline"
-                  className="hover:bg-matchup-purple hover:text-white transition-colors"
+                  key={hobby.id}
+                  variant={selectedHobbies.includes(hobby.id) ? "default" : "outline"}
+                  className={selectedHobbies.includes(hobby.id) ? "bg-matchup-purple hover:bg-matchup-purple-dark" : "hover:bg-matchup-purple-light"}
+                  onClick={() => toggleHobby(hobby.id)}
                 >
-                  {interest}
+                  {hobby.hobbyName}
                 </Button>
               ))}
             </div>

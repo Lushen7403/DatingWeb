@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from 'sonner';
-import { getProfile } from '@/lib/profileApi';
+import { getProfile, getAllHobbies, Hobby } from '@/lib/profileApi';
 import { swipeProfile } from '@/lib/matchApi';
 import { blockUser } from '@/lib/blockApi';
 import { createReport } from '@/lib/reportApi';
@@ -23,6 +23,7 @@ const ViewProfile = () => {
   const [profile, setProfile] = useState<User | null>(null);
   const [showReportDialog, setShowReportDialog] = useState(false);
   const navigate = useNavigate();
+  const [hobbies, setHobbies] = useState<Hobby[]>([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -43,7 +44,8 @@ const ViewProfile = () => {
           gender: profileData.genderId === 1 ? 'Nam' : profileData.genderId === 2 ? 'Nữ' : 'Khác',
           bio: profileData.description || '',
           avatar: profileData.avatarUrl,
-          photos: (profileData.imageUrls || [])
+          photos: (profileData.imageUrls || []),
+          hobbyIds: profileData.hobbyIds || []
         };
 
         setProfile(userData);
@@ -53,8 +55,30 @@ const ViewProfile = () => {
       }
     };
 
+    const fetchHobbies = async () => {
+      try {
+        const hobbiesData = await getAllHobbies();
+        setHobbies(hobbiesData);
+      } catch (error) {
+        // silent
+      }
+    };
+
     fetchProfile();
+    fetchHobbies();
   }, [profileId, navigate]);
+
+  useEffect(() => {
+    const fetchHobbies = async () => {
+      try {
+        const hobbiesData = await getAllHobbies();
+        setHobbies(hobbiesData);
+      } catch (error) {
+        // silent
+      }
+    };
+    fetchHobbies();
+  }, []);
 
   const handleMatch = async () => {
     if (!profile) return;
@@ -193,6 +217,8 @@ const ViewProfile = () => {
             <Heart size={24} />
           </Button>
         </div>
+
+        
       </div>
     </>
   );

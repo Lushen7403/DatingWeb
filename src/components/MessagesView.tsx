@@ -146,7 +146,12 @@ const MessagesView = ({ conversations }: MessagesViewProps) => {
                     <h3 className="font-semibold text-base truncate group-hover:text-matchup-purple transition-colors">{conv.name}</h3>
                     <span className="text-xs text-muted-foreground ml-2 whitespace-nowrap">
                       {conv.lastMessageAt
-                        ? new Date(conv.lastMessageAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+                        ? new Date(conv.lastMessageAt).toLocaleTimeString('vi-VN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: false,
+                            timeZone: 'Asia/Ho_Chi_Minh'
+                          })
                         : ''}
                     </span>
                   </div>
@@ -154,6 +159,11 @@ const MessagesView = ({ conversations }: MessagesViewProps) => {
                     <p className="text-sm line-clamp-1 truncate flex-1 text-muted-foreground group-hover:text-matchup-purple transition-colors duration-300">
                       {conv.lastMessage || 'Bắt đầu cuộc trò chuyện...'}
                     </p>
+                    {conv.unreadCount > 0 && (
+                      <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-matchup-purple text-white text-xs font-medium">
+                        {conv.unreadCount > 99 ? '99+' : conv.unreadCount}
+                      </span>
+                    )}
                   </div>
                 </div>
               </Link>

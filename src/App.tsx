@@ -28,6 +28,7 @@ import { UserX } from "lucide-react";
 import Like from "./pages/Likes";
 import Payment from './pages/Payment';
 import PaymentSuccess from './pages/PaymentSuccess';
+import Swiped from '@/pages/Swiped';
 
 // Import admin pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -38,6 +39,7 @@ import AdminDiscountCodes from './pages/admin/DiscountCodes';
 import AdminPackages from './pages/admin/Packages';
 import AdminInvoices from './pages/admin/Invoices';
 import AdminUserProfile from './pages/admin/UserProfile';
+import AdminToxicMessages from './pages/admin/ToxicMessages';
 
 const queryClient = new QueryClient();
 
@@ -57,6 +59,7 @@ const App = () => (
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="/admin/accounts" element={<AdminRoute><AdminAccounts /></AdminRoute>} />
           <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
+          <Route path="/admin/toxic-messages" element={<AdminRoute><AdminToxicMessages /></AdminRoute>} />
           <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
           <Route path="/admin/discount-codes" element={<AdminRoute><AdminDiscountCodes /></AdminRoute>} />
           <Route path="/admin/packages" element={<AdminRoute><AdminPackages /></AdminRoute>} />
@@ -74,6 +77,7 @@ const App = () => (
           <Route path="/diamond-recharge" element={<AuthenticatedRoute><DiamondRecharge /></AuthenticatedRoute>} />
           <Route path="/view-profile/:profileId" element={<AuthenticatedRoute><ViewProfile /></AuthenticatedRoute>} />
           <Route path="/likes" element={<AuthenticatedRoute><Like /></AuthenticatedRoute>} />
+          <Route path="/swiped" element={<AuthenticatedRoute><Swiped /></AuthenticatedRoute>} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/about-us" element={<AboutUs />} />
           <Route path="/support-feedback" element={<SupportFeedback />} />

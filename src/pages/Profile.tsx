@@ -26,7 +26,8 @@ const Profile = () => {
           gender: profileData.genderId === 1 ? 'Nam' : profileData.genderId === 2 ? 'Nữ' : 'Khác',
           bio: profileData.description || '',
           avatar: profileData.avatarUrl, // Cloudinary URL được trả về trực tiếp
-          photos: profileData.imageUrls || [] // Cloudinary URLs được trả về trực tiếp
+          photos: profileData.imageUrls || [], // Cloudinary URLs được trả về trực tiếp
+          hobbyIds: profileData.hobbyIds || []
         };
         setUser(userData);
       } catch (error) {

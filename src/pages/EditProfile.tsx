@@ -30,7 +30,8 @@ const EditProfilePage = () => {
           gender: profileData.genderId === 1 ? 'Nam' : profileData.genderId === 2 ? 'Nữ' : 'Khác',
           bio: profileData.description || '',
           avatar: profileData.avatarUrl,
-          photos: profileData.imageUrls || []
+          photos: profileData.imageUrls || [],
+          hobbyIds: profileData.hobbyIds || []
         };
 
         setUser(userData);
@@ -85,6 +86,12 @@ const EditProfilePage = () => {
         });
       } else {
         formData.append('ProfileImages', JSON.stringify([]));
+      }
+
+      if (updatedUser.hobbyIds && updatedUser.hobbyIds.length > 0) {
+        updatedUser.hobbyIds.forEach(id => {
+          formData.append('HobbyIds', id.toString());
+        });
       }
 
       // Gửi request cập nhật

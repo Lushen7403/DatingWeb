@@ -1,42 +1,63 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import MessagesView from '@/components/MessagesView';
 import ChatBox from '@/components/ChatBox';
 import { Conversation } from '@/types/Conversation';
 import { Message } from '@/types/Message';
 import { getConversations, getMessages } from '@/lib/chatApi';
 
-
 const MessagesPage = () => {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchConversations = async () => {
-      try {
-        const userId = localStorage.getItem('accountId');
-        if (!userId) return;
-        const data = await getConversations(Number(userId));
-        setConversations(
-          data.map((item: any) => ({
-            id: item.id,
-            otherUserId: item.otherUserId,
-            name: item.otherUserName,
-            avatar: item.otherUserAvatar,
-            isOnline: false,
-            lastMessage: item.lastMessage || '',
-            lastMessageAt: item.lastMessageAt || undefined
-          }))
-        );
-      } catch (e) {
-        // Xử lý lỗi nếu cần
-      }
-    };
-    fetchConversations();
+  const fetchConversations = useCallback(async () => {
+    try {
+      console.log('Fetching conversations...');
+      const userId = localStorage.getItem('accountId');
+      if (!userId) return;
+      const data = await getConversations(Number(userId));
+      console.log('Fetched conversations:', data);
+      setConversations(
+        data.map((item: any) => ({
+          id: item.id,
+          otherUserId: item.otherUserId,
+          name: item.otherUserName,
+          avatar: item.otherUserAvatar,
+          isOnline: false,
+          lastMessage: item.lastMessage || '',
+          lastMessageAt: item.lastMessageAt || undefined,
+          unreadCount: item.unreadCount || 0
+        }))
+      );
+    } catch (e) {
+      console.error('Error fetching conversations:', e);
+    }
   }, []);
+
+  // Load conversations initially and set up periodic refresh
+  useEffect(() => {
+    // Initial fetch
+    fetchConversations();
+
+    // Set up interval for periodic refresh
+    const intervalId = setInterval(() => {
+      fetchConversations();
+    }, 5000); // 5 seconds
+
+    return () => clearInterval(intervalId);
+  }, [fetchConversations]);
+
+  // Refresh when returning from ChatBox
+  useEffect(() => {
+    if (!id) {
+      console.log('Returning from ChatBox, refreshing conversations...');
+      fetchConversations();
+    }
+  }, [id, fetchConversations]);
 
   useEffect(() => {
     // Khi có id (chính là conversationId), gọi API lấy tin nhắn

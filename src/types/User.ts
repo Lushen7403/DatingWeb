@@ -7,4 +7,5 @@ export interface User {
   bio: string;
   avatar: string;
   photos: string[];
+  hobbyIds?: number[];
 }

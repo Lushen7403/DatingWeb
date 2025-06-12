@@ -7,6 +7,7 @@ export class ChatService {
   private connection: signalR.HubConnection | null = null;
   private messageHandlers: ((message: any) => void)[] = [];
   private onlineStatusHandlers: ((userId: number, isOnline: boolean) => void)[] = [];
+  private messagesReadHandlers: ((conversationId: number, userId: number) => void)[] = [];
 
   constructor() {
     this.initializeConnection();
@@ -38,6 +39,11 @@ export class ChatService {
       this.onlineStatusHandlers.forEach(handler => handler(userId, isOnline));
     });
 
+    this.connection.on('MessagesRead', (conversationId: number, userId: number) => {
+      console.log('Messages read:', conversationId, userId);
+      this.messagesReadHandlers.forEach(handler => handler(conversationId, userId));
+    });
+
     this.startConnection();
   }
 
@@ -66,6 +72,13 @@ export class ChatService {
     this.onlineStatusHandlers.push(handler);
     return () => {
       this.onlineStatusHandlers = this.onlineStatusHandlers.filter(h => h !== handler);
+    };
+  }
+
+  public onMessagesRead(handler: (conversationId: number, userId: number) => void) {
+    this.messagesReadHandlers.push(handler);
+    return () => {
+      this.messagesReadHandlers = this.messagesReadHandlers.filter(h => h !== handler);
     };
   }
 

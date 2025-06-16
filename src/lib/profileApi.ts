@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL_LOCAL = "http://localhost:5291/api/Profile";
+const API_URL_LOCAL = "https://datingwebbe-jnmo.onrender.com/api/Profile";
 
 // Kiểm tra profile tồn tại
 export const checkProfile = async (accountId: number): Promise<boolean> => {

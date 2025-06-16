@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BLOCK_API_URL = "http://localhost:5291/api/Block";
+const BLOCK_API_URL = "https://datingwebbe-jnmo.onrender.com/api/Block";
 
 export async function blockUser(accountId: number, blockedAccountId: number) {
   const res = await fetch(`${BLOCK_API_URL}/block?accountId=${accountId}&blockedAccountId=${blockedAccountId}`, {

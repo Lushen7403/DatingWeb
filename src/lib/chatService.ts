@@ -1,7 +1,7 @@
 import * as signalR from '@microsoft/signalr';
 
-const API_URL = 'http://localhost:5291/api/chat';
-const HUB_URL = 'http://localhost:5291/chatHub';
+const API_URL = 'https://datingwebbe-jnmo.onrender.com/api/chat';
+const HUB_URL = 'https://datingwebbe-jnmo.onrender.com/chatHub';
 
 export class ChatService {
   private connection: signalR.HubConnection | null = null;

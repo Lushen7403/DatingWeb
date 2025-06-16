@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5291/api';
+const API_URL = 'https://datingwebbe-jnmo.onrender.com/api';
 
 export interface CreatePaymentRequest {
   accountId: number;

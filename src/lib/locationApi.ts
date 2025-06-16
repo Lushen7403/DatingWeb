@@ -1,4 +1,4 @@
-const LOCATION_API_URL = "http://localhost:5291/api/Location";
+const LOCATION_API_URL = "https://datingwebbe-jnmo.onrender.com/api/Location";
 
 export async function getLocationName(lat: number, lon: number): Promise<string> {
   const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;

@@ -1,7 +1,7 @@
 // src/lib/accountApi.ts
 import axios from "axios";
 
-const API_URL = "http://localhost:5291/api/Account"; // Đổi lại nếu API chạy port khác
+const API_URL = "https://datingwebbe-jnmo.onrender.com/api/Account"; // Đổi lại nếu API chạy port khác
 
 export const login = async (data: { userName: string; password: string }) => {
   try {

@@ -1,6 +1,6 @@
 import * as signalR from '@microsoft/signalr';
 
-const HUB_URL = 'http://localhost:5291/notificationhub';
+const HUB_URL = 'https://datingwebbe-jnmo.onrender.com/notificationhub';
 
 export class NotificationService {
   private connection: signalR.HubConnection | null = null;

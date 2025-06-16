@@ -12,16 +12,16 @@ export interface DashboardData {
 }
 
 export const getDashboardData = async (): Promise<DashboardData> => {
-  const res = await axios.get('http://localhost:5291/api/AdminDash/daily');
+  const res = await axios.get('https://datingwebbe-jnmo.onrender.com/api/AdminDash/daily');
   return res.data;
 };
 
 export const getWeeklyDashboardData = async (): Promise<DashboardData> => {
-  const res = await axios.get('http://localhost:5291/api/AdminDash/weekly');
+  const res = await axios.get('https://datingwebbe-jnmo.onrender.com/api/AdminDash/weekly');
   return res.data;
 };
 
 export const getMonthlyDashboardData = async (): Promise<DashboardData> => {
-  const res = await axios.get('http://localhost:5291/api/AdminDash/monthly');
+  const res = await axios.get('https://datingwebbe-jnmo.onrender.com/api/AdminDash/monthly');
   return res.data;
 }; 

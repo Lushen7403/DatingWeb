@@ -12,7 +12,7 @@ import axios from 'axios';
 import { getProfile } from '@/lib/profileApi';
 import { User } from '@/types/User';
 
-const API_URL = "http://localhost:5291/api/AdminAccount";
+const API_URL = "https://datingwebbe-jnmo.onrender.com/api/AdminAccount";
 
 const AdminUserProfile = () => {
   const { id } = useParams();

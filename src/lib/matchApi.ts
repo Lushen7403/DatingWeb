@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL_LOCAL = "http://localhost:5291/api/Match";
+const API_URL_LOCAL = "https://datingwebbe-jnmo.onrender.com/api/Match";
 
 // Swipe API
 export const swipeProfile = async (accountId: number, swipedProfileId: number, swipeAction: boolean) => {

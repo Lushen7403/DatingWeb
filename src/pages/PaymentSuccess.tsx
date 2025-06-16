@@ -19,7 +19,7 @@ const PaymentSuccess = () => {
         // Lấy toàn bộ query params
         const params = Object.fromEntries(searchParams.entries());
         // Gửi toàn bộ params lên backend
-        const response = await axios.get('http://localhost:5291/api/Payment/return', { params });
+        const response = await axios.get('https://datingwebbe-jnmo.onrender.com/api/Payment/return', { params });
         setIsSuccess(response.data.status);
         if (response.data.status) {
           toast.success('Thanh toán thành công!');

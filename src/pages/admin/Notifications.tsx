@@ -8,7 +8,7 @@ import { Plus, Trash2, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import axios from 'axios';
 
-const API_URL = "http://localhost:5291/api/AdminNotification";
+const API_URL = "https://datingwebbe-jnmo.onrender.com/api/AdminNotification";
 const ITEMS_PER_PAGE = 10;
 
 interface Notification {

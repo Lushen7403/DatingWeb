@@ -7,8 +7,8 @@ import { Ban, Eye, Unlock, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import axios from 'axios';
 
-const API_URL = "http://localhost:5291/api/AdminReport";
-const ACCOUNT_API_URL = "http://localhost:5291/api/AdminAccount";
+const API_URL = "https://datingwebbe-jnmo.onrender.com/api/AdminReport";
+const ACCOUNT_API_URL = "https://datingwebbe-jnmo.onrender.com/api/AdminAccount";
 
 interface Report {
   id: number;

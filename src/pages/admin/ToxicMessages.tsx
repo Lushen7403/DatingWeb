@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-const API_URL = "http://localhost:5291/api/AdminMessage";
+const API_URL = "https://datingwebbe-jnmo.onrender.com/api/AdminMessage";
 
 interface ToxicMessage {
   id: number;

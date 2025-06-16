@@ -23,7 +23,7 @@ const Dislikes = () => {
       setLoading(true);
       try {
         const accountId = authService.getAccountId();
-        const res = await fetch(`http://localhost:5291/api/Match/dislike/${accountId}`);
+        const res = await fetch(`https://datingwebbe-jnmo.onrender.com/api/Match/dislike/${accountId}`);
         if (!res.ok) {
           const msg = await res.text();
           toast.error(msg || 'Không thể tải danh sách');

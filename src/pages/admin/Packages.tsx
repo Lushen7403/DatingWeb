@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Switch } from '@/components/ui/switch';
 import axios from 'axios';
 
-const API_URL = "http://localhost:5291/api/AdminPackage";
+const API_URL = "https://datingwebbe-jnmo.onrender.com/api/AdminPackage";
 const ITEMS_PER_PAGE = 10;
 
 interface Package {

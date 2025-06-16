@@ -12,15 +12,15 @@ export interface NotificationApiResponse {
 }
 
 export const getNotificationsByAccountId = async (accountId: number): Promise<NotificationApiResponse[]> => {
-  const res = await axios.get(`http://localhost:5291/api/Notification/GetByAccountId/${accountId}`);
+  const res = await axios.get(`https://datingwebbe-jnmo.onrender.com/api/Notification/GetByAccountId/${accountId}`);
   return res.data;
 };
 
 export const markAllAsRead = async (accountId: number): Promise<void> => {
-  await axios.post(`http://localhost:5291/api/Notification/MarkAllAsRead/${accountId}`);
+  await axios.post(`https://datingwebbe-jnmo.onrender.com/api/Notification/MarkAllAsRead/${accountId}`);
 };
 
 export const getUnreadNotificationCount = async (accountId: number): Promise<number> => {
-  const res = await axios.get(`http://localhost:5291/api/Notification/UnreadCount/${accountId}`);
+  const res = await axios.get(`https://datingwebbe-jnmo.onrender.com/api/Notification/UnreadCount/${accountId}`);
   return res.data;
 };

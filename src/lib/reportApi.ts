@@ -1,4 +1,4 @@
-const REPORT_API_URL = "http://localhost:5291/api/Report";
+const REPORT_API_URL = "https://datingwebbe-jnmo.onrender.com/api/Report";
 
 export interface ReportType {
   id: number;

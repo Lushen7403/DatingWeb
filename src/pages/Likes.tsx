@@ -23,7 +23,7 @@ const Like = () => {
       setLoading(true);
       try {
         const accountId = authService.getAccountId();
-        const res = await fetch(`http://localhost:5291/api/Match/swipers/${accountId}`);
+        const res = await fetch(`https://datingwebbe-jnmo.onrender.com/api/Match/swipers/${accountId}`);
         if (!res.ok) {
           const msg = await res.text();
           toast.error(msg || 'Không thể tải danh sách');

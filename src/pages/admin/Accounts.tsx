@@ -10,7 +10,7 @@ import { Eye, Ban, CheckCircle, UserX, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import axios from 'axios';
 
-const API_URL = "http://localhost:5291/api/AdminAccount";
+const API_URL = "https://datingwebbe-jnmo.onrender.com/api/AdminAccount";
 
 interface Account {
   id: number;

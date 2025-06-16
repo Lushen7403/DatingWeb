@@ -125,7 +125,7 @@ const MatchPreferences = ({ open, onClose, onCriteriaChange }: MatchPreferencesP
             <Slider
               value={[distance]}
               onValueChange={(value) => setDistance(value[0])}
-              max={100}
+              max={1000}
               step={1}
               className="w-full"
             />

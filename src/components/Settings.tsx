@@ -1,8 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { User, MapPin, FileText, MessageSquareText, LogOut, Info, Lock, Diamond, ArrowLeft, UserX, Heart } from 'lucide-react';
+import { User, MapPin, FileText, MessageSquareText, LogOut, Info, Lock, Diamond, ArrowLeft, UserX, Heart, Trash2 } from 'lucide-react';
 import UpdateLocationPopup from '@/components/UpdateLocationPopup';
 import { useState } from 'react';
+import { deleteProfile } from '@/lib/profileApi';
+import { useToast } from '@/components/ui/use-toast';
 
 interface SettingsProps {
   onLogout: () => void;
@@ -12,6 +14,27 @@ interface SettingsProps {
 const Settings = ({ onLogout, onShowLocationPopup }: SettingsProps) => {
   const navigate = useNavigate();
   const [showLocationPopup, setShowLocationPopup] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { toast } = useToast();
+
+  const handleDeleteProfile = async () => {
+    try {
+      const accountId = Number(localStorage.getItem('accountId'));
+      await deleteProfile(accountId);
+      toast({
+        title: "Thành công",
+        description: "Hồ sơ của bạn đã được xóa",
+      });
+      onLogout();
+      navigate('/login');
+    } catch (error) {
+      toast({
+        title: "Lỗi",
+        description: "Không thể xóa hồ sơ. Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -154,6 +177,15 @@ const Settings = ({ onLogout, onShowLocationPopup }: SettingsProps) => {
 
             <Button
               variant="outline"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="w-full justify-start text-base font-normal h-12 hover:scale-105 transition-transform backdrop-blur-sm bg-white/80 text-destructive hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 className="mr-2 h-5 w-5" />
+              Xóa hồ sơ
+            </Button>
+
+            <Button
+              variant="outline"
               onClick={onLogout}
               className="w-full justify-start text-base font-normal h-12 hover:scale-105 transition-transform backdrop-blur-sm bg-white/80 text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
@@ -168,6 +200,31 @@ const Settings = ({ onLogout, onShowLocationPopup }: SettingsProps) => {
         <UpdateLocationPopup
           onClose={() => setShowLocationPopup(false)}
         />
+      )}
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">Xác nhận xóa hồ sơ</h3>
+            <p className="text-gray-600 mb-6">
+              Bạn có chắc chắn muốn xóa hồ sơ của mình? Hành động này không thể hoàn tác.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Hủy
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteProfile}
+              >
+                Xóa hồ sơ
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -64,7 +64,7 @@ const Header = () => {
   return (
     <header className="matchup-header">
       <div className="flex items-center justify-between w-full px-2 sm:px-4">
-        <div className="text-xl sm:text-2xl font-bold text-matchup-purple">MatchLove</div>
+        <div className="text-xl sm:text-2xl font-bold text-matchup-purple">LoveMatch</div>
 
         <div className="flex items-center gap-1 sm:gap-3">
           <Button variant="ghost" size="icon" asChild className="text-foreground h-8 w-8 sm:h-10 sm:w-10">

@@ -103,6 +103,8 @@ export interface Profile {
   account: any;
   gender: any;
   profileImages: any[];
+  latitude?: number;
+  longitude?: number;
 }
 
 export async function getProfilesToMatch(accountId: number): Promise<Profile[]> {
@@ -185,6 +187,25 @@ export const getAllHobbies = async (): Promise<Hobby[]> => {
     }
 
     const response = await axios.get(`${API_URL_LOCAL}/hobbies`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    throw error;
+  }
+};
+
+// Xóa profile
+export const deleteProfile = async (accountId: number) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No token found');
+    }
+
+    const response = await axios.delete(`${API_URL_LOCAL}/DeleteProfile/${accountId}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }

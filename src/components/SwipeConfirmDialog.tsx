@@ -26,7 +26,7 @@ const SwipeConfirmDialog = ({
 }: SwipeConfirmDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent onClick={e => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Heart className="text-matchup-purple" />

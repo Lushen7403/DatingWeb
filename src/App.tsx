@@ -29,6 +29,7 @@ import Like from "./pages/Likes";
 import Payment from './pages/Payment';
 import PaymentSuccess from './pages/PaymentSuccess';
 import Swiped from '@/pages/Swiped';
+import Dislikes from './pages/Dislikes';
 
 // Import admin pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -77,6 +78,7 @@ const App = () => (
           <Route path="/diamond-recharge" element={<AuthenticatedRoute><DiamondRecharge /></AuthenticatedRoute>} />
           <Route path="/view-profile/:profileId" element={<AuthenticatedRoute><ViewProfile /></AuthenticatedRoute>} />
           <Route path="/likes" element={<AuthenticatedRoute><Like /></AuthenticatedRoute>} />
+          <Route path="/dislikes" element={<AuthenticatedRoute><Dislikes /></AuthenticatedRoute>} />
           <Route path="/swiped" element={<AuthenticatedRoute><Swiped /></AuthenticatedRoute>} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/about-us" element={<AboutUs />} />

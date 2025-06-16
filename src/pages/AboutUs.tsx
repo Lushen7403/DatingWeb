@@ -38,7 +38,7 @@ const AboutUs = () => {
             </div>
             <h2 className="text-3xl font-bold text-gray-800 mb-4">
               Chào mừng bạn đến với 
-              <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent"> MatchLove</span>
+              <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent"> LoveMatch</span>
             </h2>
             <p className="text-xl text-gray-600 font-medium">
               – nơi kết nối những trái tim đồng điệu!
@@ -56,7 +56,7 @@ const AboutUs = () => {
               <h3 className="text-2xl font-bold text-gray-800">Sứ mệnh của chúng tôi</h3>
             </div>
             <p className="text-gray-700 leading-relaxed text-lg">
-              Chúng tôi tin rằng trong thế giới rộng lớn này, mỗi người đều xứng đáng tìm thấy một nửa phù hợp của mình. Với sứ mệnh mang đến một không gian an toàn, chân thành và đầy cảm xúc, MatchLove được xây dựng để giúp bạn tìm kiếm không chỉ một cuộc trò chuyện thú vị, mà còn là một mối quan hệ ý nghĩa.
+              Chúng tôi tin rằng trong thế giới rộng lớn này, mỗi người đều xứng đáng tìm thấy một nửa phù hợp của mình. Với sứ mệnh mang đến một không gian an toàn, chân thành và đầy cảm xúc, LoveMatch được xây dựng để giúp bạn tìm kiếm không chỉ một cuộc trò chuyện thú vị, mà còn là một mối quan hệ ý nghĩa.
             </p>
           </CardContent>
         </Card>

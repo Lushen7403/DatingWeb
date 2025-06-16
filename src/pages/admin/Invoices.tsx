@@ -64,7 +64,7 @@ const AdminInvoices = () => {
     // Thêm dữ liệu với định dạng
     const data = [
       // Logo và thông tin công ty
-      ['MATCHLOVE - HỆ THỐNG HẸN HÒ TRỰC TUYẾN'],
+      ['LOVEMATCH - HỆ THỐNG HẸN HÒ TRỰC TUYẾN'],
       ['Địa chỉ: 123 Đường ABC, Quận XYZ, TP. Hồ Chí Minh'],
       ['Hotline: 1900 123 456 | Email: nguyenvantu7403@gmail.com'],
       [''],
@@ -112,7 +112,7 @@ const AdminInvoices = () => {
       ['Thực trả:', formatCurrency(invoice.amountAfter)],
       [''],
       // Chữ ký
-      ['Xác nhận của MatchLove', '', '', '', '', '', '', '', '', '', '', ''],
+      ['Xác nhận của LoveMatch', '', '', '', '', '', '', '', '', '', '', ''],
       [''],
       ['Người lập phiếu', '', '', '', '', '', '', '', '', '', '', ''],
       [''],
@@ -236,7 +236,7 @@ const AdminInvoices = () => {
     ];
     const docDefinition = {
       content: [
-        { text: 'MATCHLOVE - HỆ THỐNG HẸN HÒ TRỰC TUYẾN', style: 'header', alignment: 'center', color: '#FF1493' },
+        { text: 'LOVEMATCH - HỆ THỐNG HẸN HÒ TRỰC TUYẾN', style: 'header', alignment: 'center', color: '#FF1493' },
         { text: 'Hotline: 1900 123 456 | Email: nguyenvantu7403@gmail.com', style: 'subheader', alignment: 'center' },
         { text: ' ', margin: [0, 0, 0, 8] },
         { text: 'PHIẾU HÓA ĐƠN', style: 'title', alignment: 'center', color: '#FF1493', margin: [0, 0, 0, 8] },
@@ -267,7 +267,7 @@ const AdminInvoices = () => {
               { text: `Thực trả: ${formatCurrency(invoice.amountAfter)}` },
             ],
             [
-              { text: 'Xác nhận của MatchLove', alignment: 'right', color: '#FF1493', margin: [0, 0, 0, 4] },
+              { text: 'Xác nhận của LoveMatch', alignment: 'right', color: '#FF1493', margin: [0, 0, 0, 4] },
               { text: 'Người lập phiếu', alignment: 'right' },
               { text: '(Ký, ghi rõ họ tên)', alignment: 'right' }
             ]

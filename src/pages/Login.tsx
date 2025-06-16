@@ -86,22 +86,14 @@ const Login = () => {
         
         const accountId = authService.getAccountId();
         const roleId = authService.getRoleId();
-        console.log('Login Info:', {
-          accountId,
-          roleId,
-          isAdmin: authService.isAdmin(),
-          token: token.substring(0, 20) + '...' // Log first 20 chars of token for security
-        });
 
         if (accountId) {
           // Check if user is admin first
           if (authService.isAdmin()) {
-            console.log('User is admin, redirecting to admin dashboard');
             navigate('/admin');
             return;
           }
 
-          console.log('User is not admin, checking profile');
           // If not admin, check profile
           try {
             const hasProfile = await checkProfile(accountId);
@@ -177,7 +169,7 @@ const Login = () => {
         <Card className="auth-card w-full max-w-md">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-matchup-purple to-matchup-pink shimmer">
-              MatchLove
+              LoveMatch
             </CardTitle>
             <CardDescription className="text-center">Đăng nhập vào tài khoản của bạn</CardDescription>
           </CardHeader>

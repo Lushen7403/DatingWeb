@@ -1,10 +1,13 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { BarChart3, Users, AlertTriangle, Bell, Percent, Package, Receipt, Menu, X, MessageSquareWarning } from 'lucide-react';
+import { BarChart3, Users, AlertTriangle, Bell, Percent, Package, Receipt, Menu, X, MessageSquareWarning, LogOut } from 'lucide-react';
 import { useState } from 'react';
+import { authService } from '@/lib/authService';
+import { toast } from 'sonner';
 
 const AdminSidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const menuItems = [
@@ -17,6 +20,12 @@ const AdminSidebar = () => {
     { path: '/admin/packages', label: 'Quản lý các gói nạp', icon: Package },
     { path: '/admin/invoices', label: 'Quản lý hóa đơn', icon: Receipt },
   ];
+
+  const handleLogout = () => {
+    authService.logout();
+    toast.success('Đăng xuất thành công');
+    navigate('/login');
+  };
 
   return (
     <>
@@ -47,7 +56,7 @@ const AdminSidebar = () => {
         lg:translate-x-0
       `}>
         <div className="p-6 border-b">
-          <h2 className="text-xl font-bold text-primary">MatchLove Admin</h2>
+          <h2 className="text-xl font-bold text-primary">LoveMatch Admin</h2>
         </div>
         
         <nav className="mt-6">
@@ -63,6 +72,18 @@ const AdminSidebar = () => {
             </Link>
           ))}
         </nav>
+
+        {/* Logout Button */}
+        <div className="absolute bottom-6 left-0 right-0 px-4">
+          <Button
+            variant="destructive"
+            className="w-full justify-start text-sm"
+            onClick={handleLogout}
+          >
+            <LogOut className="mr-3 h-5 w-5 flex-shrink-0" />
+            <span className="truncate">Đăng xuất</span>
+          </Button>
+        </div>
       </div>
     </>
   );

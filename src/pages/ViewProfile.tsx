@@ -13,10 +13,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from 'sonner';
 import { getProfile, getAllHobbies, Hobby } from '@/lib/profileApi';
-import { swipeProfile } from '@/lib/matchApi';
+import { swipeProfile, getTodaySwipeCount } from '@/lib/matchApi';
 import { blockUser } from '@/lib/blockApi';
 import { createReport } from '@/lib/reportApi';
 import ReportDialog from '@/components/ReportDialog';
+import SwipeConfirmDialog from '@/components/SwipeConfirmDialog';
 
 const ViewProfile = () => {
   const { profileId } = useParams<{ profileId: string }>();
@@ -24,6 +25,9 @@ const ViewProfile = () => {
   const [showReportDialog, setShowReportDialog] = useState(false);
   const navigate = useNavigate();
   const [hobbies, setHobbies] = useState<Hobby[]>([]);
+  const [showSwipeDialog, setShowSwipeDialog] = useState(false);
+  const [remainingSwipes, setRemainingSwipes] = useState(10);
+  const [willUseDiamonds, setWillUseDiamonds] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -167,6 +171,28 @@ const ViewProfile = () => {
     }
   };
 
+  const checkSwipeCount = async () => {
+    try {
+      const accountId = localStorage.getItem('accountId');
+      if (!accountId) {
+        toast.error('Vui lòng đăng nhập');
+        navigate('/login');
+        return;
+      }
+      const count = await getTodaySwipeCount(parseInt(accountId));
+      const remaining = 10 - count;
+      setRemainingSwipes(remaining);
+      setWillUseDiamonds(remaining <= 0);
+      setShowSwipeDialog(true);
+    } catch (error) {
+      toast.error('Không thể kiểm tra lượt thích');
+    }
+  };
+
+  const handleLikeConfirm = async () => {
+    await handleMatch();
+  };
+
   if (!profile) {
     return <div className="min-h-screen flex items-center justify-center">Đang tải...</div>;
   }
@@ -178,6 +204,13 @@ const ViewProfile = () => {
         onClose={() => setShowReportDialog(false)}
         onConfirm={handleReportSubmit}
         userName={profile.name}
+      />
+      <SwipeConfirmDialog
+        isOpen={showSwipeDialog}
+        onClose={() => setShowSwipeDialog(false)}
+        onConfirm={handleLikeConfirm}
+        remainingSwipes={remainingSwipes}
+        willUseDiamonds={willUseDiamonds}
       />
       <div className="bg-background min-h-screen pb-20 relative">
         <UserProfile user={profile} editable={false} />
@@ -200,22 +233,21 @@ const ViewProfile = () => {
           </DropdownMenu>
         </div>
 
-        <div className="fixed bottom-6 left-0 right-0 flex justify-center gap-6 z-20">
-          <Button 
-            onClick={handleDislike}
-            className="dislike-button"
+        <div className="fixed bottom-6 left-0 right-0 flex justify-center gap-6 z-30">
+          <button
+            onClick={e => { e.stopPropagation(); handleDislike(); }}
+            className="rounded-full w-14 h-14 flex items-center justify-center shadow-md bg-white border-2 border-white hover:scale-110 transition-transform ring-1 ring-pink-200 hover:ring-pink-300 focus:ring-pink-400"
             aria-label="Dislike"
           >
-            <X size={24} />
-          </Button>
-          
-          <Button 
-            onClick={handleMatch}
-            className="like-button"
+            <X size={32} className="text-pink-400" />
+          </button>
+          <button
+            onClick={e => { e.stopPropagation(); checkSwipeCount(); }}
+            className="rounded-full w-14 h-14 flex items-center justify-center shadow-md bg-white border-2 border-white hover:scale-110 transition-transform ring-1 ring-purple-200 hover:ring-purple-300 focus:ring-purple-400"
             aria-label="Like"
           >
-            <Heart size={24} />
-          </Button>
+            <Heart size={32} className="text-purple-400" />
+          </button>
         </div>
 
         

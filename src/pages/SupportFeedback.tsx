@@ -118,7 +118,7 @@ const SupportFeedback = () => {
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-4">
               Cảm ơn bạn đã tin tưởng và sử dụng dịch vụ của 
-              <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent"> MatchLove</span>!!
+              <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent"> LoveMatch</span>!!
             </h3>
             <div className="flex justify-center gap-2 text-2xl">
               <span className="animate-bounce">💖</span>

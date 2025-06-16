@@ -32,7 +32,7 @@ const PrivacyPolicy = () => {
           <CardContent className="p-8">
             <div className="flex items-center gap-4 mb-4">
               <Heart className="h-8 w-8 text-pink-500 animate-pulse" />
-              <h2 className="text-2xl font-bold text-gray-800">Chào mừng bạn đến với MatchLove!</h2>
+              <h2 className="text-2xl font-bold text-gray-800">Chào mừng bạn đến với LoveMatch!</h2>
             </div>
             <p className="text-gray-700 leading-relaxed text-lg">
               Chúc mừng bạn đã truy cập trang web hẹn hò trực tuyến của chúng tôi! Việc bảo vệ quyền riêng tư và dữ liệu cá nhân của bạn là điều chúng tôi đặc biệt coi trọng. Dưới đây là các chính sách về quyền riêng tư của chúng tôi:

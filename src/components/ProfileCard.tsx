@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, X } from 'lucide-react';
+import { Heart, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -14,10 +14,17 @@ interface ProfileCardProps {
   age: number;
   distance: number;
   avatar: string;
+  address?: string;
   onAction?: (action: 'like' | 'dislike') => void;
+  onPrev?: () => void;
+  onNext?: () => void;
+  showPrev?: boolean;
+  showNext?: boolean;
+  description?: string;
+  className?: string;
 }
 
-const ProfileCard = ({ id, accountId, name, age, distance, avatar, onAction }: ProfileCardProps) => {
+const ProfileCard = ({ id, accountId, name, age, distance, avatar, address, onAction, onPrev, onNext, showPrev, showNext, description, className }: ProfileCardProps) => {
   const [action, setAction] = useState<'like' | 'dislike' | null>(null);
   const [showSwipeDialog, setShowSwipeDialog] = useState(false);
   const [remainingSwipes, setRemainingSwipes] = useState(10);
@@ -117,69 +124,92 @@ const ProfileCard = ({ id, accountId, name, age, distance, avatar, onAction }: P
     navigate(`/view-profile/${accountId}`);
   };
 
+  const handleDislikeClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleAction('dislike');
+  };
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleAction('like');
+  };
+
   return (
     <div 
-      className={cn(
-        "swipe-card transition-all duration-500",
-        action === 'like' && "animate-swipe-right",
-        action === 'dislike' && "animate-swipe-left"
-      )}
+      className="relative w-full max-w-md mx-auto rounded-3xl overflow-hidden shadow-xl bg-black sm:min-h-[600px] cursor-pointer"
+      onClick={() => navigate(`/view-profile/${accountId}`)}
     >
-      <div 
-        className="w-full h-full relative cursor-pointer"
-        onClick={handleCardClick}
-      >
-        <img 
-          src={avatar ? `https://res.cloudinary.com/dfvhhpkyg/image/upload/${avatar}` : '/default-avatar.png'} 
-          alt={name} 
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            // Fallback if image fails to load
-            (e.target as HTMLImageElement).src = '/default-avatar.png';
-          }}
-        />
-        
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 text-white">
-          <h2 className="text-2xl font-bold mb-1">{name}, {age}</h2>
-          <p className="text-sm opacity-80">{distance} km từ bạn</p>
-        </div>
-        
-        {/* Like and dislike overlay indicators */}
-        {action === 'like' && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="rounded-full bg-matchup-purple/90 p-6 rotate-[-20deg]">
-              <Heart size={80} className="text-white" />
-            </div>
-          </div>
-        )}
-        
-        {action === 'dislike' && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="rounded-full bg-matchup-pink/90 p-6 rotate-[20deg]">
-              <X size={80} className="text-white" />
-            </div>
-          </div>
-        )}
-      </div>
-      
-      <div className="swipe-card-actions">
-        <Button 
-          onClick={() => handleAction('dislike')}
-          className="dislike-button"
+      {/* Ảnh nền cho toàn card */}
+      <img
+        src={avatar ? `https://res.cloudinary.com/dfvhhpkyg/image/upload/${avatar}` : '/default-avatar.png'}
+        alt={name}
+        className="w-full h-[420px] sm:h-[600px] object-cover"
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = '/default-avatar.png';
+        }}
+      />
+      {/* Overlay gradient mờ dần từ dưới lên */}
+      <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10 pointer-events-none"></div>
+      {/* Nút like/dislike absolute, nhỏ lại, ngay trên mục tên, không che text */}
+      <div className="absolute left-1/2 bottom-[83px] -translate-x-1/2 z-30 flex gap-6">
+        <button
+          onClick={handleDislikeClick}
+          className="rounded-full w-14 h-14 flex items-center justify-center shadow-md bg-white border-2 border-white hover:scale-110 transition-transform ring-1 ring-pink-200 hover:ring-pink-300 focus:ring-pink-400"
           aria-label="Dislike"
         >
-          <X size={24} />
-        </Button>
-        
-        <Button 
-          onClick={() => handleAction('like')}
-          className="like-button"
+          <X size={32} className="text-pink-400" />
+        </button>
+        <button
+          onClick={handleLikeClick}
+          className="rounded-full w-14 h-14 flex items-center justify-center shadow-md bg-white border-2 border-white hover:scale-110 transition-transform ring-1 ring-purple-200 hover:ring-purple-300 focus:ring-purple-400"
           aria-label="Like"
         >
-          <Heart size={24} />
-        </Button>
+          <Heart size={32} className="text-purple-400" />
+        </button>
       </div>
-
+      {/* Info absolute bottom, text trắng, padding, nổi trên gradient */}
+      <div className="absolute bottom-0 left-0 w-full px-6 pb-6 z-20 text-left">
+        <h2 className="text-2xl font-bold mb-1 text-white drop-shadow">{name}, {age}</h2>
+        {address ? (
+          <p className="text-base text-white/90 mb-1">{address} - cách {distance} km</p>
+        ) : (
+          <p className="text-base text-white/90 mb-1">{distance} km từ bạn</p>
+        )}
+        {typeof description === 'string' && description.trim() && (
+          <p className="text-base text-white/80">{description}</p>
+        )}
+      </div>
+      {/* Nút prev/next */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onPrev && onPrev(); }}
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-30 bg-white/90 hover:bg-white rounded-full shadow p-2 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        aria-label="Hồ sơ trước"
+        disabled={!showPrev}
+      >
+        <ChevronLeft className="w-7 h-7 text-matchup-purple" />
+      </button>
+      <button
+        onClick={(e) => { e.stopPropagation(); onNext && onNext(); }}
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-white/90 hover:bg-white rounded-full shadow p-2 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        aria-label="Hồ sơ tiếp"
+        disabled={!showNext}
+      >
+        <ChevronRight className="w-7 h-7 text-matchup-purple" />
+      </button>
+      {/* Like/Dislike overlay indicators */}
+      {action === 'like' && (
+        <div className="absolute inset-0 flex items-center justify-center z-50">
+          <div className="rounded-full bg-matchup-purple/90 p-6 rotate-[-20deg]">
+            <Heart size={80} className="text-white" />
+          </div>
+        </div>
+      )}
+      {action === 'dislike' && (
+        <div className="absolute inset-0 flex items-center justify-center z-50">
+          <div className="rounded-full bg-matchup-pink/90 p-6 rotate-[20deg]">
+            <X size={80} className="text-white" />
+          </div>
+        </div>
+      )}
       <SwipeConfirmDialog
         isOpen={showSwipeDialog}
         onClose={() => setShowSwipeDialog(false)}

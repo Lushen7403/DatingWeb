@@ -46,7 +46,6 @@ const Register = () => {
       toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
       navigate("/login");
     } catch (err: any) {
-      console.error('Register error:', err);
       if (err.response?.data?.Errors) {
         const errors = err.response.data.Errors;
         if (Array.isArray(errors)) {
@@ -92,7 +91,7 @@ const Register = () => {
         <Card className="auth-card w-full max-w-md">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-matchup-purple to-matchup-pink">
-              MatchLove
+              LoveMatch
             </CardTitle>
             <CardDescription className="text-center">Tạo tài khoản mới</CardDescription>
           </CardHeader>

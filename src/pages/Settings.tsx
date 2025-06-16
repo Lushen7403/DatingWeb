@@ -3,14 +3,15 @@ import UpdateLocationPopup from '@/components/UpdateLocationPopup';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { deleteProfile } from '@/lib/profileApi';
+import { authService } from '@/lib/authService';
 
 const SettingsPage = () => {
   const [showLocationPopup, setShowLocationPopup] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("isAuthenticated");
+    authService.logout();
     toast.success('Đăng xuất thành công!');
     navigate('/login');
   };

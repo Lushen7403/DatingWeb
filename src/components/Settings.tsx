@@ -140,13 +140,6 @@ const Settings = ({ onLogout, onShowLocationPopup }: SettingsProps) => {
               </Button>
             </Link>
 
-            <Link to="/swiped" className="w-full block">
-              <Button variant="outline" className="w-full justify-start text-base font-normal h-12 hover:scale-105 transition-transform backdrop-blur-sm bg-white/80">
-                <Heart className="mr-2 h-5 w-5 text-matchup-pink" />
-                Người bạn đã thích
-              </Button>
-            </Link>
-            
             <Link to="/privacy-policy" className="w-full block">
               <Button variant="outline" className="w-full justify-start text-base font-normal h-12 hover:scale-105 transition-transform backdrop-blur-sm bg-white/80">
                 <FileText className="mr-2 h-5 w-5 text-matchup-blue" />

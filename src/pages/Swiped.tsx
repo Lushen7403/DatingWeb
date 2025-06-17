@@ -91,7 +91,7 @@ const Swiped = () => {
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
       <div className="w-full max-w-md mx-auto p-4 relative z-10">
         <div className="flex items-center mb-6">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="mr-2 hover:scale-110 transition-transform">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="mr-2 hover:scale-110 transition-transform">
             <ArrowLeft className="h-5 w-5 text-matchup-purple" />
           </Button>
           <h2 className="text-2xl font-bold bg-gradient-to-r from-matchup-purple to-matchup-pink bg-clip-text text-transparent flex items-center gap-2">

@@ -165,7 +165,7 @@ const ViewProfile = () => {
       );
       
       toast.success('Báo cáo đã được gửi thành công');
-      navigate('/');
+      setShowReportDialog(false);
     } catch (error: any) {
       toast.error(error.message || 'Có lỗi xảy ra khi gửi báo cáo');
     }

@@ -104,9 +104,15 @@ const AdminToxicMessages = () => {
       'SEVERE': 'destructive'
     } as const;
 
+    const levelText = {
+      'MILD': 'Nhẹ',
+      'MODERATE': 'Trung bình',
+      'SEVERE': 'Nghiêm trọng'
+    } as const;
+
     return (
       <Badge variant={variants[level as keyof typeof variants] || 'default'}>
-        {level}
+        {levelText[level as keyof typeof levelText] || level}
       </Badge>
     );
   };
